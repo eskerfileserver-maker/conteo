@@ -454,7 +454,7 @@ function revisar() {
   var camb = ok.filter(function (i) { return i.q !== i.st.disponible; }), al = camb.filter(esAlerta);
   var h = '<h3 style="margin-top:0">Revisar antes de aplicar</h3>';
   if (S.modo !== 'REAL') h += '<p class="chip av" style="font-size:13px">SIMULACIÓN: no se va a escribir nada</p>';
-  h += '<p>' + ok.length + ' SKU contados: <b>' + camb.length + ' cambian</b>, ' + (ok.length - camb.length) + ' coinciden con el sistema.</p>';
+  h += '<p>' + ok.length + (ok.length === 1 ? ' SKU contado' : ' SKU contados') + ': <b>' + camb.length + (camb.length === 1 ? ' cambia' : ' cambian') + '</b>, ' + (ok.length - camb.length) + ((ok.length - camb.length) === 1 ? ' coincide' : ' coinciden') + ' con el sistema.</p>';
   if (conErr.length) h += '<p style="color:var(--mal);font-size:14px">' + conErr.length + ' SKU no se pudieron consultar y <b>no se aplican</b>: ' + conErr.map(function (i) { return esc(i.c); }).join(', ') + '.</p>';
   if (camb.length) {
     h += '<table><tr><th>SKU</th><th class="n">Sistema</th><th class="n">Contado</th><th class="n">Dif.</th></tr>'
@@ -462,7 +462,7 @@ function revisar() {
     h += '<p class="nota">Lo contado es lo disponible. Lo reservado (vendido sin entregar) se mantiene: en Contabilium queda contado + reservado.</p>';
   }
   if (al.length) h += '<label class="chk"><input type="checkbox" id="conf"><span><b>' + al.length + ' SKU con alerta</b> (quedan en 0 o difieren más de ' + S.umbral + '). Los volví a contar y están bien.</span></label>';
-  h += '<button id="aplicar" style="width:100%;margin-top:8px"' + (camb.length && !al.length ? '' : ' disabled') + '>' + (camb.length ? 'Aplicar ' + camb.length + ' cambios' + (S.modo === 'REAL' ? '' : ' (simulación)') : 'No hay nada que cambiar') + '</button>';
+  h += '<button id="aplicar" style="width:100%;margin-top:8px"' + (camb.length && !al.length ? '' : ' disabled') + '>' + (camb.length ? 'Aplicar ' + camb.length + (camb.length === 1 ? ' cambio' : ' cambios') + (S.modo === 'REAL' ? '' : ' (simulación)') : 'No hay nada que cambiar') + '</button>';
   h += '<div class="err" id="e-rev"></div>';
   if (!camb.length && ok.length) h += '<button class="sec" id="cerrar-sin" style="width:100%;margin-top:8px">Terminar: todo coincide</button>';
   $('rev').innerHTML = h; pantalla('p-revisar');
