@@ -33,11 +33,12 @@ label{display:block;font-size:14px;color:var(--suave);margin:10px 0 4px}
 #camara video{width:100%;height:42vh;object-fit:cover;display:block}
 #camara .mira{position:absolute;left:10%;right:10%;top:38%;bottom:38%;border:2px solid rgba(255,255,255,.8);border-radius:8px;pointer-events:none}
 #camara .ctl{position:absolute;right:8px;top:8px;display:flex;gap:6px}
-#camara .ctl button{padding:8px 10px;font-size:13px;background:rgba(0,0,0,.55)}
+#camara .ctl button{padding:10px 14px;font-size:15px;background:rgba(0,0,0,.6)}
+#camara .ctl button.on{background:#facc15;color:#111}
 #ultimo{position:absolute;left:8px;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;border-radius:8px;padding:8px 10px;font-size:15px;display:none}
 #ultimo b{font-size:20px}
 #camara video{cursor:pointer}
-#tocar{position:absolute;left:0;right:0;top:12px;text-align:center;color:#fff;font-size:14px;font-weight:600;text-shadow:0 1px 3px #000;pointer-events:none}
+#tocar{position:absolute;left:0;right:0;top:60px;text-align:center;color:#fff;font-size:14px;font-weight:600;text-shadow:0 1px 3px #000;pointer-events:none}
 #camara.leyendo .mira{border-color:#facc15;border-width:3px}
 #camara.leido .mira{border-color:#22c55e;border-width:4px}
 #camara.fallo .mira{border-color:#ef4444;border-width:4px}
@@ -73,7 +74,7 @@ td.n,th.n{text-align:right}
 .modal h3{margin:0 0 8px;font-size:17px}
 .opc{display:block;width:100%;text-align:left;margin-bottom:8px;background:#e8edf3;color:var(--texto);font-weight:400}
 .opc b{display:block}
-#aviso{position:fixed;left:16px;right:16px;top:64px;z-index:60;display:none;padding:12px 14px;border-radius:10px;font-size:15px;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+#aviso{position:fixed;left:16px;right:16px;bottom:calc(104px + env(safe-area-inset-bottom));z-index:60;display:none;padding:12px 14px;border-radius:10px;font-size:15px;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .chk{display:flex;gap:10px;align-items:flex-start;background:var(--malf);border-radius:10px;padding:12px;margin:10px 0;font-size:15px}
 .chk input{width:26px;height:26px;flex:none;margin:0}
 .vacio{text-align:center;color:var(--suave);padding:24px 8px;font-size:14px}
@@ -110,7 +111,7 @@ td.n,th.n{text-align:right}
 <!-- CONTEO -->
 <section class="pant" id="p-conteo">
   <div id="camara"><video id="v" playsinline muted></video><div class="mira"></div><div id="tocar">Apuntá al código y tocá la imagen para leer</div>
-    <div class="ctl"><button id="luz" style="display:none">Luz</button><button id="cerrar-cam">Cerrar</button></div>
+    <div class="ctl"><button id="luz">Linterna</button><button id="cerrar-cam">Cerrar</button></div>
     <div id="ultimo"></div></div>
   <div class="carta">
     <div class="btnes"><button id="abrir-cam">Escanear con la cámara</button></div>
@@ -407,13 +408,24 @@ function abrirCamara() {
     cam.stream = s; var v = $('v'); v.srcObject = s; $('camara').style.display = 'block'; $('abrir-cam').style.display = 'none';
     pausar(false); $('ultimo').style.display = 'none';
     var tr = s.getVideoTracks()[0], cap = tr.getCapabilities ? tr.getCapabilities() : {};
-    $('luz').style.display = cap.torch ? 'inline-block' : 'none'; cam.luz = false;
+    cam.luz = false; pintarLuz();
     try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (l) { cam.lock = l; }).catch(function () {}); } catch (e) {}
     return v.play();
   }).then(function () {})
     .catch(function (e) { detenerCamara(); err.textContent = e.name === 'NotAllowedError' ? 'No se dio permiso a la cámara. Habilitalo en el candado de la barra de direcciones.' : 'No se pudo abrir la cámara: ' + e.message; });
 }
-$('luz').onclick = function () { var tr = cam.stream && cam.stream.getVideoTracks()[0]; if (!tr) return; cam.luz = !cam.luz; tr.applyConstraints({ advanced: [{ torch: cam.luz }] }).catch(function () {}); };
+// Linterna: siempre visible. Chrome en Android la maneja desde la camara trasera;
+// si el telefono no la expone al navegador, se avisa en vez de esconder el boton.
+function pintarLuz() { var b = $('luz'); b.textContent = cam.luz ? 'Linterna: ON' : 'Linterna'; b.classList.toggle('on', !!cam.luz); }
+$('luz').onclick = function () {
+  var tr = cam.stream && cam.stream.getVideoTracks()[0]; if (!tr) return;
+  var quiero = !cam.luz;
+  tr.applyConstraints({ advanced: [{ torch: quiero }] }).then(function () {
+    var st = tr.getSettings ? tr.getSettings() : {};
+    if (quiero && st.torch === false) throw new Error('sin linterna');
+    cam.luz = quiero; pintarLuz();
+  }).catch(function () { cam.luz = false; pintarLuz(); aviso('Este celular no deja prender la linterna desde Chrome. Probá con más luz en el depósito.', 'mal'); });
+};
 function marcar(cl) { var k = $('camara'); k.classList.remove('leyendo', 'leido', 'fallo'); if (cl) k.classList.add(cl); }
 // Toma el codigo mas cercano al centro del recuadro, para no leer el de al lado.
 function elMasCentrado(r, v) {
