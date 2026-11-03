@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1a3a5c">
+<meta name="robots" content="noindex,nofollow">
+<title>Conteo rápido DIFRAL</title>
+<style>
+:root{--azul:#1a3a5c;--azul2:#24507e;--fondo:#f3f5f8;--carta:#fff;--texto:#111827;--suave:#6b7280;--linea:#e5e7eb;--ok:#057a55;--okf:#def7ec;--mal:#c81e1e;--malf:#fde8e8;--av:#92400e;--avf:#fef3c7}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--fondo);color:var(--texto);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;-webkit-text-size-adjust:100%}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:12px 16px;background:var(--azul);color:#fff;font-weight:600;touch-action:manipulation}
+button.sec{background:#e8edf3;color:var(--azul)}
+button.peligro{background:var(--mal)}
+button:disabled{opacity:.45}
+input{font:inherit;padding:12px;border:1px solid #cbd2db;border-radius:10px;width:100%;background:#fff;color:var(--texto)}
+input:focus{outline:2px solid var(--azul2);border-color:transparent}
+header{position:sticky;top:0;z-index:20;background:var(--azul);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:10px}
+header h1{font-size:17px;margin:0;flex:1}
+header .quien{font-size:13px;opacity:.85}
+header button{padding:6px 10px;font-size:13px;background:rgba(255,255,255,.15)}
+#modo{display:none;background:var(--avf);color:var(--av);font-size:13px;font-weight:700;text-align:center;padding:6px 16px;border-bottom:1px solid #f3d27a}
+main{padding:12px 16px 120px;max-width:720px;margin:0 auto}
+.carta{background:var(--carta);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.pant{display:none}.pant.on{display:block}
+label{display:block;font-size:14px;color:var(--suave);margin:10px 0 4px}
+.err{color:var(--mal);font-size:14px;margin-top:8px;min-height:1em}
+.nota{font-size:13px;color:var(--suave)}
+.fila{display:flex;gap:8px;align-items:center}
+.fila>input{flex:1}
+#camara{position:relative;background:#000;border-radius:12px;overflow:hidden;display:none;margin-bottom:10px}
+#camara video{width:100%;height:42vh;object-fit:cover;display:block}
+#camara .mira{position:absolute;left:10%;right:10%;top:38%;bottom:38%;border:2px solid rgba(255,255,255,.8);border-radius:8px;pointer-events:none}
+#camara .ctl{position:absolute;right:8px;top:8px;display:flex;gap:6px}
+#camara .ctl button{padding:8px 10px;font-size:13px;background:rgba(0,0,0,.55)}
+#ultimo{position:absolute;left:8px;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;border-radius:8px;padding:8px 10px;font-size:15px;display:none}
+#ultimo b{font-size:20px}
+.btnes{display:flex;gap:8px}.btnes>button{flex:1}
+#sug{margin-top:6px}
+#sug div{padding:10px;border-bottom:1px solid var(--linea);font-size:14px}
+#sug div:active{background:#eef2f7}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.item{background:var(--carta);border-radius:12px;padding:10px 12px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.06);border-left:5px solid transparent}
+.item.alerta{border-left-color:var(--mal)}
+.item.igual{border-left-color:var(--ok)}
+.item .sup{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.item .sku{font-weight:700;font-size:15px;word-break:break-all}
+.item .nom{font-size:13px;color:var(--suave);margin-top:2px}
+.item .x{background:none;color:var(--suave);padding:2px 6px;font-size:20px;line-height:1}
+.item .inf{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px}
+.item .sis{font-size:13px;color:var(--suave)}
+.cant{display:flex;align-items:center;gap:4px}
+.cant button{width:44px;height:44px;padding:0;font-size:22px;background:#e8edf3;color:var(--azul)}
+.cant input{width:64px;text-align:center;font-size:20px;font-weight:700;padding:8px 4px}
+.chip{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px}
+.chip.ok{background:var(--okf);color:var(--ok)}.chip.mal{background:var(--malf);color:var(--mal)}.chip.av{background:var(--avf);color:var(--av)}.chip.gr{background:#eef0f3;color:#374151}
+.pie{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;border-top:1px solid var(--linea);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+.pie .res{font-size:13px;color:var(--suave);margin-bottom:6px;text-align:center}
+.pie .in{max-width:720px;margin:0 auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:6px 4px;border-bottom:1px solid var(--linea);text-align:left;vertical-align:top}
+th{font-size:12px;color:var(--suave);font-weight:600}
+td.n,th.n{text-align:right}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;display:none;align-items:flex-end;justify-content:center}
+.modal.on{display:flex}
+.modal .caja{background:#fff;width:100%;max-width:720px;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));max-height:85vh;overflow:auto}
+.modal h3{margin:0 0 8px;font-size:17px}
+.opc{display:block;width:100%;text-align:left;margin-bottom:8px;background:#e8edf3;color:var(--texto);font-weight:400}
+.opc b{display:block}
+#aviso{position:fixed;left:16px;right:16px;top:64px;z-index:60;display:none;padding:12px 14px;border-radius:10px;font-size:15px;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.chk{display:flex;gap:10px;align-items:flex-start;background:var(--malf);border-radius:10px;padding:12px;margin:10px 0;font-size:15px}
+.chk input{width:26px;height:26px;flex:none;margin:0}
+.vacio{text-align:center;color:var(--suave);padding:24px 8px;font-size:14px}
+</style>
+</head>
+<body>
+<header><h1>Conteo rápido</h1><span class="quien" id="quien"></span><button id="salir" style="display:none">Salir</button></header>
+<div id="modo">SIMULACIÓN: no se escribe nada en Contabilium</div>
+<div id="aviso"></div>
+<main>
+
+<!-- INGRESO -->
+<section class="pant on" id="p-login">
+  <div class="carta">
+    <label for="u">Usuario</label>
+    <input id="u" autocomplete="username" autocapitalize="none" spellcheck="false">
+    <div id="b-pin">
+      <label for="pin">PIN</label>
+      <input id="pin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="6">
+    </div>
+    <div id="b-nuevo" style="display:none">
+      <p class="nota">Es tu primer ingreso. Elegí un PIN de 4 a 6 números. Solo vos lo sabés: se guarda cifrado.</p>
+      <label for="np1">PIN nuevo</label>
+      <input id="np1" type="password" inputmode="numeric" autocomplete="new-password" maxlength="6">
+      <label for="np2">Repetir PIN</label>
+      <input id="np2" type="password" inputmode="numeric" autocomplete="new-password" maxlength="6">
+    </div>
+    <div style="margin-top:14px"><button id="entrar" style="width:100%">Ingresar</button></div>
+    <div class="err" id="e-login"></div>
+  </div>
+  <p class="nota" id="cat-estado"></p>
+</section>
+
+<!-- CONTEO -->
+<section class="pant" id="p-conteo">
+  <div id="camara"><video id="v" playsinline muted></video><div class="mira"></div>
+    <div class="ctl"><button id="luz" style="display:none">Luz</button><button id="pausa">Pausa</button><button id="cerrar-cam">Cerrar</button></div>
+    <div id="ultimo"></div></div>
+  <div class="carta">
+    <div class="btnes"><button id="abrir-cam">Escanear con la cámara</button></div>
+    <label for="manual">O escribí el SKU, el código o parte del nombre</label>
+    <div class="fila"><input id="manual" autocapitalize="characters" spellcheck="false" autocomplete="off" enterkeyhint="done"><button id="sumar" class="sec">+1</button></div>
+    <div id="sug"></div>
+    <div class="err" id="e-conteo"></div>
+  </div>
+  <div id="lista"></div>
+</section>
+
+<!-- REVISAR -->
+<section class="pant" id="p-revisar">
+  <div class="carta" id="rev"></div>
+</section>
+
+<!-- RESULTADO -->
+<section class="pant" id="p-resultado">
+  <div class="carta" id="resul"></div>
+</section>
+</main>
+
+<div class="pie" id="pie" style="display:none"><div class="in">
+  <div class="res" id="resumen"></div>
+  <div class="btnes" id="pie-btn"></div>
+</div></div>
+
+<div class="modal" id="modal"><div class="caja" id="modal-caja"></div></div>
+
+<script>
+'use strict';
+// ============================================================
+// Conteo rapido DIFRAL (03/11/2026). Pagina estatica: toda la logica de
+// escritura vive en n8n (CONTEO_RAPIDO_v1). Aca solo se cuenta.
+// Lo contado es el DISPONIBLE (lo vendido sin entregar se separa antes).
+// ============================================================
+var API = 'https://eskerfileserver.app.n8n.cloud/webhook/conteo-api';
+var GAP_MS = 600;        // el codigo tiene que salir de cuadro este tiempo para volver a sumar
+var MIN_MS = 900;        // minimo entre dos sumas del mismo codigo
+var S = { usuario: '', pin: '', nombre: '', modo: '', umbral: 5, max: 200, items: [], elegidos: {}, cat: null };
+
+// ---------- utilidades ----------
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function guardarLS(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+function leerLS(k) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+function borrarLS(k) { try { localStorage.removeItem(k); } catch (e) {} }
+function hoyAR() { return new Date(Date.now() - 3 * 3600 * 1000).toISOString().slice(0, 10); }
+var tAviso = null;
+function aviso(txt, tipo) {
+  var a = $('aviso'); a.textContent = txt;
+  a.style.background = tipo === 'mal' ? 'var(--mal)' : (tipo === 'av' ? '#b45309' : 'var(--ok)'); a.style.color = '#fff'; a.style.display = 'block';
+  clearTimeout(tAviso); tAviso = setTimeout(function () { a.style.display = 'none'; }, tipo === 'mal' ? 3500 : 1800);
+}
+var ac = null;
+function sonido(ok) {
+  try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); var o = ac.createOscillator(), g = ac.createGain();
+    o.frequency.value = ok ? 1200 : 220; g.gain.value = 0.15; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + (ok ? 0.07 : 0.3)); } catch (e) {}
+  try { if (navigator.vibrate) navigator.vibrate(ok ? 60 : [120, 60, 120]); } catch (e) {}
+}
+function llamar(cuerpo, ms) {
+  var c = new AbortController(), t = setTimeout(function () { c.abort(); }, ms || 60000);
+  var b = Object.assign({ usuario: S.usuario, pin: S.pin }, cuerpo);
+  return fetch(API, { method: 'POST', mode: 'cors', cache: 'no-store', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(b), signal: c.signal })
+    .then(function (r) { if (!r.ok) throw new Error('El servidor respondió ' + r.status); return r.json(); })
+    .catch(function (e) { if (e.name === 'AbortError') throw new Error('Sin respuesta del servidor. Revisá la conexión.'); if (/fetch/i.test(e.message)) throw new Error('Sin conexión con el servidor.'); throw e; })
+    .finally(function () { clearTimeout(t); });
+}
+function pantalla(id) {
+  ['p-login', 'p-conteo', 'p-revisar', 'p-resultado'].forEach(function (p) { $(p).classList.toggle('on', p === id); });
+  $('pie').style.display = id === 'p-conteo' || id === 'p-revisar' ? 'block' : 'none';
+  if (id !== 'p-conteo') detenerCamara();
+  window.scrollTo(0, 0); pintarPie(id);
+}
+
+// ---------- ingreso ----------
+var crearPin = false;
+$('u').value = leerLS('cr_usuario') || '';
+$('entrar').onclick = ingresar;
+['pin', 'np2'].forEach(function (id) { $(id).addEventListener('keydown', function (e) { if (e.key === 'Enter') ingresar(); }); });
+function ingresar() {
+  var u = $('u').value.trim().toLowerCase(), err = $('e-login'); err.textContent = '';
+  if (!u) { err.textContent = 'Falta el usuario'; return; }
+  var cuerpo = { accion: 'ingresar' }, pin = $('pin').value.trim();
+  if (crearPin) {
+    var a = $('np1').value.trim(), b = $('np2').value.trim();
+    if (!/^\d{4,6}$/.test(a)) { err.textContent = 'El PIN tiene que tener de 4 a 6 números'; return; }
+    if (a !== b) { err.textContent = 'Los dos PIN no coinciden'; return; }
+    cuerpo.nuevo_pin = a; pin = a;
+  } else if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'El PIN tiene de 4 a 6 números'; return; }
+  S.usuario = u; S.pin = crearPin ? '' : pin;
+  $('entrar').disabled = true; $('entrar').textContent = 'Ingresando…';
+  llamar(cuerpo).then(function (r) {
+    if (r.crear_pin) { crearPin = true; $('b-pin').style.display = 'none'; $('b-nuevo').style.display = 'block'; err.textContent = r.error || ''; return; }
+    if (!r.ok) { err.textContent = r.error || 'No se pudo ingresar'; return; }
+    S.pin = pin; S.nombre = r.nombre || u; S.modo = r.modo || ''; S.umbral = r.umbral || 5; S.max = r.max_items || 200;
+    guardarLS('cr_usuario', u);
+    try { sessionStorage.setItem('cr_ses', JSON.stringify({ u: u, p: pin, n: S.nombre, m: S.modo, um: S.umbral, mx: S.max })); } catch (e) {}
+    entrarConteo();
+  }).catch(function (e) { err.textContent = e.message; })
+    .finally(function () { $('entrar').disabled = false; $('entrar').textContent = 'Ingresar'; });
+}
+function entrarConteo() {
+  $('quien').textContent = S.nombre; $('salir').style.display = 'inline-block';
+  $('modo').style.display = S.modo === 'REAL' ? 'none' : 'block';
+  S.items = leerLS('cr_conteo_' + S.usuario) || [];
+  pantalla('p-conteo'); pintarLista();
+  cargarCatalogo().then(function () { pedirStock(S.items.filter(function (i) { return !i.st || i.st.error; }).map(function (i) { return i.c; })); });
+}
+$('salir').onclick = function () {
+  try { sessionStorage.removeItem('cr_ses'); } catch (e) {}
+  S.pin = ''; $('pin').value = ''; $('salir').style.display = 'none'; $('quien').textContent = ''; $('modo').style.display = 'none';
+  crearPin = false; $('b-pin').style.display = 'block'; $('b-nuevo').style.display = 'none'; pantalla('p-login');
+};
+
+// ---------- catalogo ----------
+function armarIndice(filas) {
+  var sku = new Map(), alias = new Map();
+  for (var i = 0; i < filas.length; i++) {
+    var f = filas[i], c = f[0];
+    if (f[4] === 'C') sku.set(String(c).toLowerCase(), { c: c, n: f[2], t: f[3] });
+    else { var k = String(f[1]).trim().toLowerCase(); if (!k) continue; var l = alias.get(k) || []; l.push({ c: c, o: f[4] }); alias.set(k, l); }
+  }
+  return { sku: sku, alias: alias, filas: filas };
+}
+function cargarCatalogo() {
+  var c = leerLS('cr_cat_v1');
+  if (c && c.dia === hoyAR() && c.filas && c.filas.length) { S.cat = armarIndice(c.filas); $('cat-estado').textContent = 'Catálogo del ' + c.act; return Promise.resolve(); }
+  if (c && c.filas) S.cat = armarIndice(c.filas);   // se usa el viejo mientras baja el nuevo
+  aviso('Bajando el catálogo…', 'av');
+  return llamar({ accion: 'catalogo' }, 120000).then(function (r) {
+    if (!r.ok) throw new Error(r.error || 'No se pudo bajar el catálogo');
+    S.cat = armarIndice(r.filas);
+    if (!guardarLS('cr_cat_v1', { dia: hoyAR(), act: r.actualizado, filas: r.filas })) borrarLS('cr_cat_v1');
+    aviso('Catálogo listo (' + S.cat.sku.size + ' productos)');
+  }).catch(function (e) { if (!S.cat) { $('e-conteo').textContent = 'Sin catálogo: ' + e.message + '. Tocá aquí para reintentar.'; $('e-conteo').onclick = function () { $('e-conteo').textContent = ''; cargarCatalogo(); }; } });
+}
+// Devuelve la lista de SKU posibles para un codigo leido. Prioridad: SKU exacto > codigo de barras > mapeo de remitos.
+function resolver(cod) {
+  if (!S.cat) return [];
+  var k = String(cod).trim().toLowerCase(); if (!k) return [];
+  var prueba = [k];
+  if (/^\d+$/.test(k)) { if (k.length === 12) prueba.push('0' + k); if (k.length === 13 && k[0] === '0') prueba.push(k.slice(1)); }
+  for (var i = 0; i < prueba.length; i++) { var s = S.cat.sku.get(prueba[i]); if (s) return [s]; }
+  var orden = ['B', 'M'];
+  for (var j = 0; j < orden.length; j++) {
+    var vistos = {}, out = [];
+    for (var i2 = 0; i2 < prueba.length; i2++) (S.cat.alias.get(prueba[i2]) || []).forEach(function (a) {
+      if (a.o === orden[j] && !vistos[a.c]) { var p = S.cat.sku.get(String(a.c).toLowerCase()); if (p) { vistos[a.c] = 1; out.push(p); } }
+    });
+    if (out.length) return out;
+  }
+  return [];
+}
+function buscar(txt) {
+  if (!S.cat || txt.length < 3) return [];
+  var q = txt.toLowerCase(), out = [], palabras = q.split(/\s+/).filter(Boolean);
+  S.cat.sku.forEach(function (p) {
+    if (out.length >= 30) return;
+    var c = p.c.toLowerCase(), n = String(p.n).toLowerCase();
+    if (c.indexOf(q) === 0 || palabras.every(function (w) { return c.indexOf(w) >= 0 || n.indexOf(w) >= 0; })) out.push(p);
+  });
+  out.sort(function (a, b) { return (a.c.toLowerCase().indexOf(q) === 0 ? 0 : 1) - (b.c.toLowerCase().indexOf(q) === 0 ? 0 : 1); });
+  return out.slice(0, 8);
+}
+
+// ---------- conteo ----------
+function guardarConteo() { if (!guardarLS('cr_conteo_' + S.usuario, S.items)) aviso('No se pudo guardar en el teléfono. No cierres la página.', 'mal'); }
+function leido(cod, origen) {
+  if (!S.cat) { sonido(false); aviso('Esperá a que baje el catálogo', 'mal'); return; }
+  var k = String(cod).trim().toLowerCase();
+  if (S.elegidos[k] === '-') { sonido(false); aviso('Código ignorado: ' + cod, 'av'); return; }
+  if (S.elegidos[k]) { sumar(S.cat.sku.get(S.elegidos[k].toLowerCase()), 1, origen); return; }
+  var l = resolver(cod);
+  if (l.length === 1) { sumar(l[0], 1, origen); return; }
+  sonido(false); pausar(true);
+  if (!l.length) preguntarDesconocido(cod); else preguntarCual(cod, l);
+}
+function sumar(p, n, origen) {
+  if (!p) return;
+  if (p.t !== 'P') { sonido(false); aviso(p.c + ' es ' + (p.t === 'C' ? 'un combo: contá sus componentes' : 'un servicio: no tiene stock'), 'mal'); return; }
+  var it = S.items.find(function (i) { return i.c === p.c; });
+  if (!it) {
+    if (S.items.length >= S.max) { sonido(false); aviso('Máximo ' + S.max + ' SKU por conteo. Aplicá este y empezá otro.', 'mal'); return; }
+    it = { c: p.c, n: p.n, q: 0, st: null }; S.items.unshift(it); pedirStock([p.c]);
+  } else { S.items.splice(S.items.indexOf(it), 1); S.items.unshift(it); }
+  it.q = Math.max(0, it.q + n); it.ts = Date.now();
+  guardarConteo(); sonido(true); pintarLista();
+  if (origen === 'cam') { var u = $('ultimo'); u.innerHTML = '<b>' + it.q + '</b> · <span class="mono">' + esc(it.c) + '</span><br><span style="font-size:13px">' + esc(it.n) + '</span>'; u.style.display = 'block'; }
+}
+function preguntarCual(cod, l) {
+  var h = '<h3>El código <span class="mono">' + esc(cod) + '</span> corresponde a ' + l.length + ' productos</h3><p class="nota">Elegí cuál estás contando. Se recuerda hasta que salgas.</p>';
+  l.forEach(function (p, i) { h += '<button class="opc" data-i="' + i + '"><b class="mono">' + esc(p.c) + '</b>' + esc(p.n) + '</button>'; });
+  h += '<button class="sec" style="width:100%" data-i="x">Ignorar este código</button>';
+  modal(h, function (i) { var k = String(cod).trim().toLowerCase(); if (i === 'x') S.elegidos[k] = '-'; else { S.elegidos[k] = l[i].c; sumar(l[i], 1, 'cam'); } });
+}
+function preguntarDesconocido(cod) {
+  var h = '<h3>No encuentro el código <span class="mono">' + esc(cod) + '</span></h3><p class="nota">No está como SKU ni como código de barras en Contabilium. Buscá el producto (SKU o nombre) o ignoralo.</p>'
+    + '<input id="m-b" autocapitalize="characters" autocomplete="off" placeholder="SKU o nombre"><div id="m-sug" style="margin-top:8px"></div>'
+    + '<button class="sec" style="width:100%;margin-top:8px" data-i="x">Ignorar este código</button>';
+  var lista = [];
+  modal(h, function (i) { var k = String(cod).trim().toLowerCase(); if (i === 'x') S.elegidos[k] = '-'; else { S.elegidos[k] = lista[i].c; sumar(lista[i], 1, 'cam'); } });
+  $('m-b').oninput = function () { lista = buscar(this.value.trim()); $('m-sug').innerHTML = lista.map(function (p, i) { return '<button class="opc" data-i="' + i + '"><b class="mono">' + esc(p.c) + '</b>' + esc(p.n) + '</button>'; }).join(''); };
+  setTimeout(function () { $('m-b').focus(); }, 50);
+}
+var alElegir = null;
+function modal(h, fn) { $('modal-caja').innerHTML = h; $('modal').classList.add('on'); alElegir = fn; }
+$('modal').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-i]');
+  if (b) { var i = b.getAttribute('data-i'); cerrarModal(); if (alElegir) alElegir(i === 'x' ? 'x' : Number(i)); return; }
+  if (e.target === $('modal')) cerrarModal();
+});
+function cerrarModal() { $('modal').classList.remove('on'); pausar(false); }
+
+// entrada manual y sugerencias
+var sugs = [];
+$('manual').addEventListener('input', function () {
+  var t = this.value.trim(); sugs = t.length >= 3 ? buscar(t) : [];
+  $('sug').innerHTML = sugs.map(function (p, i) { return '<div data-s="' + i + '"><b class="mono">' + esc(p.c) + '</b> · ' + esc(p.n) + '</div>'; }).join('');
+});
+$('sug').addEventListener('click', function (e) { var d = e.target.closest('[data-s]'); if (!d) return; sumar(sugs[Number(d.getAttribute('data-s'))], 1, 'man'); limpiarManual(); });
+$('manual').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); sumarManual(); } });
+$('sumar').onclick = sumarManual;
+function sumarManual() { var t = $('manual').value.trim(); if (!t) return; leido(t, 'man'); limpiarManual(); }
+function limpiarManual() { $('manual').value = ''; $('sug').innerHTML = ''; sugs = []; }
+
+// lista
+function difDe(it) { return it.st && !it.st.error ? it.q - it.st.disponible : null; }
+function esAlerta(it) { var d = difDe(it); return d !== null && d !== 0 && (it.q === 0 || Math.abs(d) > S.umbral); }
+function pintarLista() {
+  var l = $('lista');
+  if (!S.items.length) { l.innerHTML = '<div class="vacio">Todavía no contaste nada.<br>Escaneá o escribí el primer producto.</div>'; pintarPie('p-conteo'); return; }
+  l.innerHTML = S.items.map(function (it, i) {
+    var d = difDe(it), cl = esAlerta(it) ? 'alerta' : (d === 0 ? 'igual' : ''), sis, chip = '';
+    if (!it.st) sis = 'Consultando stock…';
+    else if (it.st.error) { sis = '<span style="color:var(--mal)">' + esc(it.st.error) + '</span> <button class="sec" style="padding:4px 8px;font-size:12px" data-r="' + i + '">Reintentar</button>'; }
+    else {
+      sis = 'Sistema: <b>' + it.st.disponible + '</b> disp.' + (it.st.reservado ? ' (' + it.st.actual + ' − ' + it.st.reservado + ' reserv.)' : '');
+      chip = d === 0 ? '<span class="chip ok">Coincide</span>' : '<span class="chip ' + (esAlerta(it) ? 'mal' : 'av') + '">' + (d > 0 ? '+' : '') + d + '</span>';
+    }
+    return '<div class="item ' + cl + '"><div class="sup"><div><div class="sku mono">' + esc(it.c) + ' ' + chip + '</div><div class="nom">' + esc(it.n) + '</div></div><button class="x" data-del="' + i + '" aria-label="Quitar">×</button></div>'
+      + '<div class="inf"><div class="sis">' + sis + '</div><div class="cant"><button data-m="' + i + '">−</button><input type="number" inputmode="numeric" min="0" value="' + it.q + '" data-q="' + i + '"><button data-p="' + i + '">+</button></div></div></div>';
+  }).join('');
+  pintarPie('p-conteo');
+}
+$('lista').addEventListener('click', function (e) {
+  var b = e.target.closest('button'); if (!b) return;
+  var i;
+  if ((i = b.getAttribute('data-m')) !== null) { var it = S.items[i]; it.q = Math.max(0, it.q - 1); guardarConteo(); pintarLista(); }
+  else if ((i = b.getAttribute('data-p')) !== null) { S.items[i].q++; guardarConteo(); pintarLista(); }
+  else if ((i = b.getAttribute('data-r')) !== null) { S.items[i].st = null; pintarLista(); pedirStock([S.items[i].c]); }
+  else if ((i = b.getAttribute('data-del')) !== null) {
+    var it2 = S.items[i];
+    modal('<h3>¿Quitar <span class="mono">' + esc(it2.c) + '</span> del conteo?</h3><p class="nota">No se cambia nada en Contabilium para este SKU. Si lo que querés es dejarlo en 0, poné 0 en la cantidad.</p><div class="btnes"><button class="sec" data-i="x">Cancelar</button><button class="peligro" data-i="0">Quitar</button></div>',
+      function (r) { if (r === 0) { S.items.splice(S.items.indexOf(it2), 1); guardarConteo(); pintarLista(); } });
+  }
+});
+$('lista').addEventListener('change', function (e) {
+  var i = e.target.getAttribute('data-q'); if (i === null) return;
+  var n = parseInt(e.target.value, 10); S.items[i].q = isNaN(n) || n < 0 ? 0 : Math.min(n, 100000); guardarConteo(); pintarLista();
+});
+
+// stock: se consulta en tandas de hasta 20
+var cola = [], tCola = null, consultando = false;
+function pedirStock(cods) { cods.forEach(function (c) { if (cola.indexOf(c) < 0) cola.push(c); }); clearTimeout(tCola); tCola = setTimeout(vaciarCola, 800); }
+function vaciarCola() {
+  if (consultando || !cola.length) return;
+  var t = cola.splice(0, 20); consultando = true;
+  llamar({ accion: 'stock', codigos: t }).then(function (r) {
+    if (!r.ok) throw new Error(r.error || 'No se pudo consultar');
+    (r.stock || []).forEach(function (s) {
+      S.items.forEach(function (it) { if (it.c.toLowerCase() === String(s.pedido).toLowerCase()) it.st = s.ok ? { actual: s.actual, reservado: s.reservado, disponible: s.disponible, hora: r.leido } : { error: s.error }; });
+    });
+  }).catch(function (e) {
+    S.items.forEach(function (it) { if (t.indexOf(it.c) >= 0 && !it.st) it.st = { error: e.message }; });
+  }).finally(function () { consultando = false; guardarConteo(); pintarLista(); if (cola.length) setTimeout(vaciarCola, 300); });
+}
+
+// ---------- camara ----------
+var cam = { stream: null, det: null, pausa: false, ult: '', vistoEn: 0, sumadoEn: 0, lock: null, timer: null };
+$('abrir-cam').onclick = abrirCamara;
+$('cerrar-cam').onclick = detenerCamara;
+$('pausa').onclick = function () { pausar(!cam.pausa); };
+function pausar(p) { cam.pausa = p; $('pausa').textContent = p ? 'Seguir' : 'Pausa'; }
+function abrirCamara() {
+  var err = $('e-conteo'); err.textContent = '';
+  if (!('BarcodeDetector' in window)) { err.textContent = 'Este navegador no lee códigos. Usá Chrome en Android, o escribí los códigos a mano.'; return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { err.textContent = 'Este navegador no permite usar la cámara.'; return; }
+  BarcodeDetector.getSupportedFormats().then(function (f) {
+    cam.det = new BarcodeDetector({ formats: f.length ? f : ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'qr_code'] });
+    return navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+  }).then(function (s) {
+    cam.stream = s; var v = $('v'); v.srcObject = s; $('camara').style.display = 'block'; $('abrir-cam').style.display = 'none';
+    pausar(false); $('ultimo').style.display = 'none';
+    var tr = s.getVideoTracks()[0], cap = tr.getCapabilities ? tr.getCapabilities() : {};
+    $('luz').style.display = cap.torch ? 'inline-block' : 'none'; cam.luz = false;
+    try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (l) { cam.lock = l; }).catch(function () {}); } catch (e) {}
+    return v.play();
+  }).then(function () { cam.timer = setInterval(detectar, 150); })
+    .catch(function (e) { detenerCamara(); err.textContent = e.name === 'NotAllowedError' ? 'No se dio permiso a la cámara. Habilitalo en el candado de la barra de direcciones.' : 'No se pudo abrir la cámara: ' + e.message; });
+}
+$('luz').onclick = function () { var tr = cam.stream && cam.stream.getVideoTracks()[0]; if (!tr) return; cam.luz = !cam.luz; tr.applyConstraints({ advanced: [{ torch: cam.luz }] }).catch(function () {}); };
+var detectando = false;
+function detectar() {
+  if (detectando || cam.pausa || !cam.det) return;
+  var v = $('v'); if (v.readyState < 2) return;
+  detectando = true;
+  cam.det.detect(v).then(function (r) {
+    var ahora = Date.now();
+    if (!r.length) return;
+    var c = r[0].rawValue; if (!c) return;
+    // Cada escaneo suma 1: el mismo codigo vuelve a sumar solo si salio de cuadro un momento.
+    if (c !== cam.ult || (ahora - cam.vistoEn > GAP_MS && ahora - cam.sumadoEn > MIN_MS)) { cam.ult = c; cam.sumadoEn = ahora; leido(c, 'cam'); }
+    cam.vistoEn = ahora;
+  }).catch(function () {}).finally(function () { detectando = false; });
+}
+function detenerCamara() {
+  clearInterval(cam.timer); cam.timer = null;
+  if (cam.stream) cam.stream.getTracks().forEach(function (t) { t.stop(); });
+  cam.stream = null; $('camara').style.display = 'none'; $('abrir-cam').style.display = 'block';
+  try { if (cam.lock) cam.lock.release(); } catch (e) {} cam.lock = null;
+}
+document.addEventListener('visibilitychange', function () { if (document.hidden) detenerCamara(); });
+
+// ---------- pie ----------
+function cuentas() {
+  var u = 0, cambian = 0, alertas = 0, pend = 0, errs = 0;
+  S.items.forEach(function (it) { u += it.q; if (!it.st) pend++; else if (it.st.error) errs++; else { if (it.q !== it.st.disponible) cambian++; if (esAlerta(it)) alertas++; } });
+  return { skus: S.items.length, u: u, cambian: cambian, alertas: alertas, pend: pend, errs: errs };
+}
+function pintarPie(id) {
+  var k = cuentas(), b = $('pie-btn');
+  $('resumen').textContent = k.skus + ' SKU · ' + k.u + ' u. contadas · ' + k.cambian + ' cambian' + (k.alertas ? ' · ' + k.alertas + ' con alerta' : '') + (k.pend ? ' · ' + k.pend + ' consultando' : '');
+  if (id === 'p-revisar') b.innerHTML = '<button class="sec" id="volver">Seguir contando</button>';
+  else b.innerHTML = '<button id="revisar"' + (k.skus ? '' : ' disabled') + '>Revisar y aplicar</button>';
+  if ($('volver')) $('volver').onclick = function () { pantalla('p-conteo'); pintarLista(); };
+  if ($('revisar')) $('revisar').onclick = revisar;
+}
+
+// ---------- revisar ----------
+function revisar() {
+  var k = cuentas();
+  if (k.pend) { aviso('Esperá a que termine la consulta de stock', 'av'); return; }
+  var conErr = S.items.filter(function (i) { return i.st && i.st.error; });
+  var ok = S.items.filter(function (i) { return i.st && !i.st.error; });
+  var camb = ok.filter(function (i) { return i.q !== i.st.disponible; }), al = camb.filter(esAlerta);
+  var h = '<h3 style="margin-top:0">Revisar antes de aplicar</h3>';
+  if (S.modo !== 'REAL') h += '<p class="chip av" style="font-size:13px">SIMULACIÓN: no se va a escribir nada</p>';
+  h += '<p>' + ok.length + ' SKU contados: <b>' + camb.length + ' cambian</b>, ' + (ok.length - camb.length) + ' coinciden con el sistema.</p>';
+  if (conErr.length) h += '<p style="color:var(--mal);font-size:14px">' + conErr.length + ' SKU no se pudieron consultar y <b>no se aplican</b>: ' + conErr.map(function (i) { return esc(i.c); }).join(', ') + '.</p>';
+  if (camb.length) {
+    h += '<table><tr><th>SKU</th><th class="n">Sistema</th><th class="n">Contado</th><th class="n">Dif.</th></tr>'
+      + camb.map(function (i) { var d = i.q - i.st.disponible; return '<tr' + (esAlerta(i) ? ' style="background:var(--malf)"' : '') + '><td><span class="mono">' + esc(i.c) + '</span><br><span class="nota">' + esc(String(i.n).slice(0, 40)) + '</span></td><td class="n">' + i.st.disponible + '</td><td class="n"><b>' + i.q + '</b></td><td class="n">' + (d > 0 ? '+' : '') + d + '</td></tr>'; }).join('') + '</table>';
+    h += '<p class="nota">Lo contado es lo disponible. Lo reservado (vendido sin entregar) se mantiene: en Contabilium queda contado + reservado.</p>';
+  }
+  if (al.length) h += '<label class="chk"><input type="checkbox" id="conf"><span><b>' + al.length + ' SKU con alerta</b> (quedan en 0 o difieren más de ' + S.umbral + '). Los volví a contar y están bien.</span></label>';
+  h += '<button id="aplicar" style="width:100%;margin-top:8px"' + (camb.length && !al.length ? '' : ' disabled') + '>' + (camb.length ? 'Aplicar ' + camb.length + ' cambios' + (S.modo === 'REAL' ? '' : ' (simulación)') : 'No hay nada que cambiar') + '</button>';
+  h += '<div class="err" id="e-rev"></div>';
+  if (!camb.length && ok.length) h += '<button class="sec" id="cerrar-sin" style="width:100%;margin-top:8px">Terminar: todo coincide</button>';
+  $('rev').innerHTML = h; pantalla('p-revisar');
+  if ($('conf')) $('conf').onchange = function () { $('aplicar').disabled = !this.checked; };
+  if ($('cerrar-sin')) $('cerrar-sin').onclick = function () { S.items = []; guardarConteo(); pantalla('p-conteo'); pintarLista(); aviso('Conteo cerrado sin cambios'); };
+  $('aplicar').onclick = function () {
+    var btn = this; btn.disabled = true; btn.textContent = 'Enviando…'; $('e-rev').textContent = '';
+    var items = ok.map(function (i) { return { codigo: i.c, contado: i.q, nombre: String(i.n).slice(0, 60) }; });
+    llamar({ accion: 'aplicar', items: items, confirmo_alertas: al.length > 0 && $('conf').checked }).then(function (r) {
+      if (!r.ok) throw new Error(r.error || 'No se pudo aplicar');
+      guardarLS('cr_pendiente_' + S.usuario, { id: r.id, enviados: items.map(function (x) { return x.codigo; }) });
+      seguir(r.id, 0);
+    }).catch(function (e) { $('e-rev').textContent = e.message + ' Antes de reintentar, revisá el correo o el registro: puede haberse aplicado.'; btn.disabled = false; btn.textContent = 'Reintentar'; });
+  };
+}
+
+// ---------- resultado ----------
+function seguir(id, n) {
+  pantalla('p-resultado');
+  if (n === 0) $('resul').innerHTML = '<h3 style="margin-top:0">Aplicando…</h3><p class="nota">Conteo ' + esc(id) + '. Tarda unos segundos por SKU. Podés dejar esta pantalla abierta.</p>';
+  llamar({ accion: 'estado', id: id }).then(function (r) {
+    if (!r.ok) throw new Error(r.error || 'No se pudo leer el estado');
+    if (r.estado === 'EN CURSO' || r.estado === 'NO ENCONTRADO') { if (n < 90) setTimeout(function () { seguir(id, n + 1); }, 4000); else mostrarDemora(id); return; }
+    mostrarResultado(r);
+  }).catch(function (e) { if (n < 90) setTimeout(function () { seguir(id, n + 1); }, 6000); else mostrarDemora(id, e.message); });
+}
+function mostrarDemora(id, m) { $('resul').innerHTML = '<h3>Sigue en proceso</h3><p>' + esc(m || 'El conteo ' + id + ' todavía no terminó.') + ' Vas a recibir el resultado por correo. <b>No lo vuelvas a aplicar.</b></p><button id="otra" class="sec">Consultar de nuevo</button>'; $('otra').onclick = function () { seguir(id, 0); }; }
+function mostrarResultado(r) {
+  var colr = function (x) { return x === 'ESCRITO' ? 'ok' : (x === 'SIN CAMBIO' || x === 'SIMULADO' ? 'gr' : 'mal'); };
+  var d = r.detalle || [];
+  var h = '<h3 style="margin-top:0">' + esc(r.estado) + '</h3><p class="nota">Conteo ' + esc(r.id) + ' · ' + esc(r.fecha) + '</p>'
+    + '<p>' + r.skus + ' SKU · ' + r.cambian + ' cambian · neto ' + (r.neto > 0 ? '+' : '') + r.neto + ' u.' + (r.modo === 'REAL' ? ' · ' + r.escritos + ' escritos' : '') + (Number(r.fallidos) ? ' · <b style="color:var(--mal)">' + r.fallidos + ' con problemas</b>' : '') + '</p>'
+    + '<table><tr><th>SKU</th><th class="n">Antes</th><th class="n">Queda</th><th>Resultado</th></tr>'
+    + d.map(function (f) { return '<tr><td><span class="mono">' + esc(f[0]) + '</span>' + (f[8] ? '<br><span class="nota" style="color:var(--av)">' + esc(f[8]) + '</span>' : '') + '</td><td class="n">' + esc(f[3]) + '</td><td class="n">' + esc(f[7] === 'SIN CAMBIO' ? f[3] : f[5]) + '</td><td><span class="chip ' + colr(f[7]) + '">' + esc(f[7]) + '</span></td></tr>'; }).join('') + '</table>';
+  var resueltos = {}; d.forEach(function (f) { if (['ESCRITO', 'SIN CAMBIO'].indexOf(f[7]) >= 0) resueltos[String(f[0]).toLowerCase()] = 1; });
+  if (r.estado === 'TERMINADO' || r.estado === 'TERMINADO CON ERRORES') {
+    S.items = S.items.filter(function (i) { return !resueltos[i.c.toLowerCase()]; });
+    S.items.forEach(function (i) { i.st = null; });
+    h += S.items.length ? '<p>Quedaron en la lista los ' + S.items.length + ' SKU con problemas. <b>Revisalos antes de volver a aplicar</b>: algunos pueden haberse escrito igual.</p>' : '<p>Conteo cerrado.</p>';
+  } else if (r.estado === 'NO APLICADO') {
+    S.items.forEach(function (i) { i.st = null; });
+    h += '<p><b>No se escribió nada.</b> El stock cambió mientras contabas y aparecieron alertas nuevas. Revisá y volvé a confirmar.</p>';
+  } else if (r.estado === 'SIMULADO') {
+    h += '<p>Simulación: no se escribió nada. El conteo sigue abierto.</p>';
+  }
+  guardarConteo(); borrarLS('cr_pendiente_' + S.usuario);
+  h += '<button id="fin" style="width:100%;margin-top:10px">' + (S.items.length ? 'Volver al conteo' : 'Nuevo conteo') + '</button>';
+  $('resul').innerHTML = h;
+  $('fin').onclick = function () { pantalla('p-conteo'); pintarLista(); pedirStock(S.items.filter(function (i) { return !i.st; }).map(function (i) { return i.c; })); };
+}
+
+// ---------- arranque ----------
+(function () {
+  var s = null; try { s = JSON.parse(sessionStorage.getItem('cr_ses') || 'null'); } catch (e) {}
+  if (!s) return;
+  S.usuario = s.u; S.pin = s.p; S.nombre = s.n; S.modo = s.m; S.umbral = s.um || 5; S.max = s.mx || 200;
+  entrarConteo();
+  var p = leerLS('cr_pendiente_' + S.usuario); if (p && p.id) seguir(p.id, 0);
+})();
+</script>
+</body>
+</html>
