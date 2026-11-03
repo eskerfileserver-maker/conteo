@@ -36,6 +36,11 @@ label{display:block;font-size:14px;color:var(--suave);margin:10px 0 4px}
 #camara .ctl button{padding:8px 10px;font-size:13px;background:rgba(0,0,0,.55)}
 #ultimo{position:absolute;left:8px;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;border-radius:8px;padding:8px 10px;font-size:15px;display:none}
 #ultimo b{font-size:20px}
+#camara video{cursor:pointer}
+#tocar{position:absolute;left:0;right:0;top:12px;text-align:center;color:#fff;font-size:14px;font-weight:600;text-shadow:0 1px 3px #000;pointer-events:none}
+#camara.leyendo .mira{border-color:#facc15;border-width:3px}
+#camara.leido .mira{border-color:#22c55e;border-width:4px}
+#camara.fallo .mira{border-color:#ef4444;border-width:4px}
 .btnes{display:flex;gap:8px}.btnes>button{flex:1}
 #sug{margin-top:6px}
 #sug div{padding:10px;border-bottom:1px solid var(--linea);font-size:14px}
@@ -104,8 +109,8 @@ td.n,th.n{text-align:right}
 
 <!-- CONTEO -->
 <section class="pant" id="p-conteo">
-  <div id="camara"><video id="v" playsinline muted></video><div class="mira"></div>
-    <div class="ctl"><button id="luz" style="display:none">Luz</button><button id="pausa">Pausa</button><button id="cerrar-cam">Cerrar</button></div>
+  <div id="camara"><video id="v" playsinline muted></video><div class="mira"></div><div id="tocar">Apuntá al código y tocá la imagen para leer</div>
+    <div class="ctl"><button id="luz" style="display:none">Luz</button><button id="cerrar-cam">Cerrar</button></div>
     <div id="ultimo"></div></div>
   <div class="carta">
     <div class="btnes"><button id="abrir-cam">Escanear con la cámara</button></div>
@@ -143,8 +148,7 @@ td.n,th.n{text-align:right}
 // Lo contado es el DISPONIBLE (lo vendido sin entregar se separa antes).
 // ============================================================
 var API = 'https://eskerfileserver.app.n8n.cloud/webhook/conteo-api';
-var GAP_MS = 600;        // el codigo tiene que salir de cuadro este tiempo para volver a sumar
-var MIN_MS = 900;        // minimo entre dos sumas del mismo codigo
+var LEER_MS = 1200;      // al tocar, se busca un codigo durante este tiempo como maximo
 var S = { usuario: '', pin: '', nombre: '', modo: '', umbral: 5, max: 200, items: [], elegidos: {}, cat: null };
 
 // ---------- utilidades ----------
@@ -385,11 +389,13 @@ function vaciarCola() {
 }
 
 // ---------- camara ----------
-var cam = { stream: null, det: null, pausa: false, ult: '', vistoEn: 0, sumadoEn: 0, lock: null, timer: null };
+// Lectura a pedido (03/11, pedido de Alfredo): la camara queda abierta pero solo lee cuando
+// se toca la imagen. Cada toque con lectura suma 1. Asi no hay lecturas falsas.
+var cam = { stream: null, det: null, pausa: false, lock: null, leyendo: false };
 $('abrir-cam').onclick = abrirCamara;
 $('cerrar-cam').onclick = detenerCamara;
-$('pausa').onclick = function () { pausar(!cam.pausa); };
-function pausar(p) { cam.pausa = p; $('pausa').textContent = p ? 'Seguir' : 'Pausa'; }
+$('v').addEventListener('click', leerAhora);
+function pausar(p) { cam.pausa = p; }
 function abrirCamara() {
   var err = $('e-conteo'); err.textContent = '';
   if (!('BarcodeDetector' in window)) { err.textContent = 'Este navegador no lee códigos. Usá Chrome en Android, o escribí los códigos a mano.'; return; }
@@ -404,26 +410,35 @@ function abrirCamara() {
     $('luz').style.display = cap.torch ? 'inline-block' : 'none'; cam.luz = false;
     try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (l) { cam.lock = l; }).catch(function () {}); } catch (e) {}
     return v.play();
-  }).then(function () { cam.timer = setInterval(detectar, 150); })
+  }).then(function () {})
     .catch(function (e) { detenerCamara(); err.textContent = e.name === 'NotAllowedError' ? 'No se dio permiso a la cámara. Habilitalo en el candado de la barra de direcciones.' : 'No se pudo abrir la cámara: ' + e.message; });
 }
 $('luz').onclick = function () { var tr = cam.stream && cam.stream.getVideoTracks()[0]; if (!tr) return; cam.luz = !cam.luz; tr.applyConstraints({ advanced: [{ torch: cam.luz }] }).catch(function () {}); };
-var detectando = false;
-function detectar() {
-  if (detectando || cam.pausa || !cam.det) return;
+function marcar(cl) { var k = $('camara'); k.classList.remove('leyendo', 'leido', 'fallo'); if (cl) k.classList.add(cl); }
+// Toma el codigo mas cercano al centro del recuadro, para no leer el de al lado.
+function elMasCentrado(r, v) {
+  var cx = v.videoWidth / 2, cy = v.videoHeight / 2, mejor = null, dm = Infinity;
+  r.forEach(function (b) { if (!b.rawValue) return; var q = b.boundingBox || {}; var x = (q.x || 0) + (q.width || 0) / 2, y = (q.y || 0) + (q.height || 0) / 2;
+    var d = (x - cx) * (x - cx) + (y - cy) * (y - cy); if (d < dm) { dm = d; mejor = b; } });
+  return mejor;
+}
+function leerAhora() {
+  if (cam.leyendo || cam.pausa || !cam.det) return;
   var v = $('v'); if (v.readyState < 2) return;
-  detectando = true;
-  cam.det.detect(v).then(function (r) {
-    var ahora = Date.now();
-    if (!r.length) return;
-    var c = r[0].rawValue; if (!c) return;
-    // Cada escaneo suma 1: el mismo codigo vuelve a sumar solo si salio de cuadro un momento.
-    if (c !== cam.ult || (ahora - cam.vistoEn > GAP_MS && ahora - cam.sumadoEn > MIN_MS)) { cam.ult = c; cam.sumadoEn = ahora; leido(c, 'cam'); }
-    cam.vistoEn = ahora;
-  }).catch(function () {}).finally(function () { detectando = false; });
+  cam.leyendo = true; marcar('leyendo');
+  var hasta = Date.now() + LEER_MS;
+  (function intento() {
+    cam.det.detect(v).then(function (r) {
+      var b = r.length ? elMasCentrado(r, v) : null;
+      if (b) { cam.leyendo = false; marcar('leido'); setTimeout(function () { marcar(''); }, 400); leido(b.rawValue, 'cam'); return; }
+      if (Date.now() < hasta) { setTimeout(intento, 100); return; }
+      cam.leyendo = false; marcar('fallo'); setTimeout(function () { marcar(''); }, 600);
+      sonido(false); aviso('No se leyó ningún código. Acercá el celular y volvé a tocar.', 'av');
+    }).catch(function () { cam.leyendo = false; marcar(''); });
+  })();
 }
 function detenerCamara() {
-  clearInterval(cam.timer); cam.timer = null;
+  cam.leyendo = false; marcar('');
   if (cam.stream) cam.stream.getTracks().forEach(function (t) { t.stop(); });
   cam.stream = null; $('camara').style.display = 'none'; $('abrir-cam').style.display = 'block';
   try { if (cam.lock) cam.lock.release(); } catch (e) {} cam.lock = null;
