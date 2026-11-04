@@ -217,6 +217,25 @@ td.n,th.n{text-align:right}
 <div id="cliente"></div>
 
 <script>
+// Red de seguridad (04/11): si algo falla al cargar, se muestra el error en pantalla con un boton
+// para reiniciar (borra la sesion y el catalogo guardado; NO borra el conteo en curso).
+var VERSION = '2026-11-04 10:15';
+function mostrarFalla(msg) {
+  try {
+    var d = document.getElementById('falla');
+    if (!d) { d = document.createElement('div'); d.id = 'falla'; d.style.cssText = 'position:fixed;left:12px;right:12px;top:12px;z-index:99;background:#c81e1e;color:#fff;padding:14px;border-radius:12px;font:15px system-ui,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.3)'; document.body.appendChild(d); }
+    d.innerHTML = '<b>La página tuvo un error al cargar.</b><br><span style="font-size:13px">' + String(msg).replace(/[<>&]/g, '') + '<br>Versión ' + VERSION + '</span><br><button id="reiniciar" style="margin-top:10px;width:100%;padding:12px;border:0;border-radius:10px;background:#fff;color:#c81e1e;font-weight:700;font-size:16px">Reiniciar la página</button>';
+    document.getElementById('reiniciar').onclick = function () {
+      try { sessionStorage.clear(); } catch (e) {}
+      try { Object.keys(localStorage).forEach(function (k) { if (!/^crp?_conteo_/.test(k) && k !== 'cr_usuario') localStorage.removeItem(k); }); } catch (e) {}
+      location.reload();
+    };
+  } catch (e) {}
+}
+window.addEventListener('error', function (e) { mostrarFalla((e && e.message) || 'Error desconocido'); });
+window.addEventListener('unhandledrejection', function (e) { mostrarFalla((e && e.reason && e.reason.message) || 'Error en una consulta'); });
+</script>
+<script>
 'use strict';
 // ============================================================
 // Conteo rapido DIFRAL (03/11/2026). Pagina estatica: toda la logica de
@@ -798,12 +817,19 @@ function mostrarResultado(r) {
   $('modo').className = REAL ? 'real' : '';
   $('modo').textContent = REAL ? 'REAL: los cambios se escriben en Contabilium' : 'PRÁCTICA: no se escribe nada en Contabilium';
 })();
+$('cat-estado').textContent = 'Versión ' + VERSION;
 (function () {
   var s = null; try { s = JSON.parse(sessionStorage.getItem(PFX + 'ses') || 'null'); } catch (e) {}
-  if (!s) return;
-  S.usuario = s.u; S.pin = s.p; S.nombre = s.n; S.modo = s.m; S.umbral = s.um || 5; S.max = s.mx || 200;
-  entrarConteo();
-  var p = leerLS(PFX + 'pendiente_' + S.usuario); if (p && p.id) seguir(p.id, 0);
+  if (!s || !s.u) return;
+  try {
+    S.usuario = s.u; S.pin = s.p; S.nombre = s.n; S.modo = s.m; S.umbral = s.um || 5; S.max = s.mx || 200;
+    entrarConteo();
+    var p = leerLS(PFX + 'pendiente_' + S.usuario); if (p && p.id) seguir(p.id, 0);
+  } catch (e) {
+    // Si la sesion guardada no se puede retomar, se vuelve al ingreso y se muestra el error.
+    try { sessionStorage.removeItem(PFX + 'ses'); } catch (e2) {}
+    pantalla('p-login'); mostrarFalla('No se pudo retomar la sesión: ' + e.message);
+  }
 })();
 </script>
 </body>
