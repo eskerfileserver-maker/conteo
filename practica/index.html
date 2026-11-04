@@ -30,7 +30,9 @@ body.login{background:#000}
 body.login .carta{border-radius:16px;padding:18px}
 body.login #cat-estado{color:#9a9a9a;text-align:center}
 body.login #entrar{padding:15px;font-size:17px}
-header .quien{font-size:13px;opacity:.85}
+header .quien{font-size:13px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:28vw}
+header .marca{overflow:hidden}
+@media (max-width:380px){header .marca span{display:none}}
 header button{padding:7px 12px;font-size:13px;background:rgba(255,255,255,.14)}
 #modo{display:none;background:var(--avf);color:var(--av);font-size:13px;font-weight:700;text-align:center;padding:6px 16px;border-bottom:1px solid #f3d27a}
 #modo.real{background:var(--mal);color:#fff;border-bottom-color:#9b1c1c}
@@ -49,7 +51,11 @@ label{display:block;font-size:14px;color:var(--suave);margin:10px 0 4px}
 #camara .ctl{position:absolute;right:8px;top:8px;display:flex;gap:6px}
 #camara .ctl button{padding:10px 14px;font-size:15px;background:rgba(0,0,0,.6)}
 #camara .ctl button.on{background:#facc15;color:#111}
-#ultimo{position:absolute;left:8px;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;border-radius:8px;padding:8px 10px;font-size:15px;display:none}
+#zoom{position:absolute;left:8px;top:50%;transform:translateY(-50%);display:none;flex-direction:column;gap:6px}
+#zoom button{width:46px;padding:9px 0;font-size:14px;background:rgba(0,0,0,.6)}
+#zoom button.on{background:#fff;color:#000}
+#caminfo{background:#111;color:#bbb;font-size:11px;padding:5px 10px;line-height:1.3}
+#ultimo{position:absolute;left:62px;right:8px;bottom:34px;background:rgba(0,0,0,.65);color:#fff;border-radius:8px;padding:8px 10px;font-size:15px;display:none}
 #ultimo b{font-size:20px}
 #camara video{cursor:pointer}
 #tocar{position:absolute;left:0;right:0;top:60px;text-align:center;color:#fff;font-size:14px;font-weight:600;text-shadow:0 1px 3px #000;pointer-events:none}
@@ -138,7 +144,8 @@ td.n,th.n{text-align:right}
 <main>
 <!-- CAMARA (compartida por conteo y precio) -->
 <div id="camara"><video id="v" playsinline muted></video><div class="mira"></div><div id="tocar">Apuntá al código y tocá la imagen para leer</div>
-  <div class="ctl"><button id="luz">Linterna</button><button id="cerrar-cam">Cerrar</button></div>
+  <div class="ctl"><button id="luz">Linterna</button><button id="otra-cam" style="display:none">Cámara</button><button id="cerrar-cam">Cerrar</button></div>
+  <div id="zoom"></div><div id="caminfo"></div>
   <div id="ultimo"></div></div>
 
 <!-- INGRESO -->
@@ -219,7 +226,7 @@ td.n,th.n{text-align:right}
 <script>
 // Red de seguridad (04/11): si algo falla al cargar, se muestra el error en pantalla con un boton
 // para reiniciar (borra la sesion y el catalogo guardado; NO borra el conteo en curso).
-var VERSION = '2026-11-04 10:15';
+var VERSION = '2026-11-04 15:30';
 function mostrarFalla(msg) {
   try {
     var d = document.getElementById('falla');
@@ -249,7 +256,7 @@ var API = 'https://eskerfileserver.app.n8n.cloud/webhook/conteo-api';
 var MODO_PAGINA = 'SIMULACION';
 var REAL = MODO_PAGINA === 'REAL';
 var PFX = REAL ? 'cr_' : 'crp_';      // conteos en curso separados por modo
-var LEER_MS = 1200;      // al tocar, se busca un codigo durante este tiempo como maximo
+var LEER_MS = 1800;      // al tocar, se busca un codigo durante este tiempo como maximo
 var S = { usuario: '', pin: '', nombre: '', modo: '', umbral: 5, max: 200, items: [], elegidos: {}, cat: null };
 
 // ---------- utilidades ----------
@@ -516,31 +523,109 @@ function vaciarCola() {
 }
 
 // ---------- camara ----------
-// Lectura a pedido (03/11, pedido de Alfredo): la camara queda abierta pero solo lee cuando
-// se toca la imagen. Cada toque con lectura suma 1. Asi no hay lecturas falsas.
-var cam = { stream: null, det: null, pausa: false, lock: null, leyendo: false };
+// Lectura a pedido (03/11): la camara queda abierta pero solo lee cuando se toca la imagen.
+// Foco (04/11, pedido de Alfredo; en los Samsung salia borroso de cerca): Chrome suele elegir la
+// camara gran angular, que tiene foco fijo. Se elige la camara trasera principal (y se recuerda en el
+// telefono), foco continuo, tocar enfoca en ese punto, zoom 2x para leer a 15-20 cm, 1920x1080 y se
+// analiza ademas el recuadro ampliado. Abajo de la imagen se muestran los datos de la camara.
+var cam = { stream: null, det: null, pausa: false, lock: null, leyendo: false, traseras: [], cap: {}, zoom: 1 };
 $('abrir-cam').onclick = abrirCamara;
 $('abrir-cam-p').onclick = abrirCamara;
 function errVista() { return $(S.vista === 'p-precio' ? 'e-precio' : 'e-conteo'); }
 $('cerrar-cam').onclick = detenerCamara;
-$('v').addEventListener('click', leerAhora);
+$('v').addEventListener('click', function (e) { enfocarEn(e); leerAhora(); });
 function pausar(p) { cam.pausa = p; }
+function pedidoCamara(id) {
+  var v = { width: { ideal: 1920 }, height: { ideal: 1080 } };
+  if (id) v.deviceId = { exact: id }; else v.facingMode = { ideal: 'environment' };
+  return navigator.mediaDevices.getUserMedia({ video: v, audio: false });
+}
+// Camara trasera principal: en Android las etiquetas son del tipo "camera2 0, facing back"; la de
+// numero mas bajo es la principal. Las que dicen gran angular / ultra / tele quedan al final.
+function ordenarTraseras(ds) {
+  var t = ds.filter(function (d) { return d.kind === 'videoinput' && !/front|frontal|user|delantera|selfie/i.test(d.label || ''); });
+  var num = function (d) { var m = String(d.label || '').match(/(\d+)(?!.*\d)/); return m ? Number(m[1]) : 99; };  // ultimo numero: "camera2 0, facing back" -> 0
+  var castigo = function (d) { return /ultra|wide|gran angular|tele|macro|depth/i.test(d.label || '') ? 100 : 0; };
+  return t.sort(function (a, b) { return (castigo(a) + num(a)) - (castigo(b) + num(b)); });
+}
 function abrirCamara() {
   var err = errVista(); err.textContent = '';
   if (!('BarcodeDetector' in window)) { err.textContent = 'Este navegador no lee códigos. Usá Chrome en Android, o escribí los códigos a mano.'; return; }
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { err.textContent = 'Este navegador no permite usar la cámara.'; return; }
+  var guardada = leerLS('cr_cam_id');
   BarcodeDetector.getSupportedFormats().then(function (f) {
     cam.det = new BarcodeDetector({ formats: f.length ? f : ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'qr_code'] });
-    return navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+    return pedidoCamara(guardada).catch(function (e) { if (guardada) { borrarLS('cr_cam_id'); guardada = null; return pedidoCamara(null); } throw e; });
   }).then(function (s) {
-    cam.stream = s; var v = $('v'); v.srcObject = s; $('camara').style.display = 'block'; document.querySelectorAll('.abrir-cam').forEach(function (b) { b.style.display = 'none'; }); window.scrollTo(0, 0);
-    pausar(false); $('ultimo').style.display = 'none';
-    var tr = s.getVideoTracks()[0], cap = tr.getCapabilities ? tr.getCapabilities() : {};
-    cam.luz = false; pintarLuz();
-    try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (l) { cam.lock = l; }).catch(function () {}); } catch (e) {}
-    return v.play();
-  }).then(function () {})
+    // Con el permiso ya dado, las camaras traen nombre: se elige la principal si no habia una guardada.
+    return navigator.mediaDevices.enumerateDevices().then(function (ds) {
+      cam.traseras = ordenarTraseras(ds);
+      var actual = (s.getVideoTracks()[0].getSettings() || {}).deviceId;
+      var principal = cam.traseras[0];
+      if (!guardada && principal && principal.deviceId && actual && principal.deviceId !== actual) {
+        s.getTracks().forEach(function (t) { t.stop(); });
+        return pedidoCamara(principal.deviceId).then(function (s2) { guardarLS('cr_cam_id', principal.deviceId); return s2; }).catch(function () { return pedidoCamara(actual); });
+      }
+      if (actual) guardarLS('cr_cam_id', actual);
+      return s;
+    }).catch(function () { return s; });
+  }).then(mostrarStream)
     .catch(function (e) { detenerCamara(); err.textContent = e.name === 'NotAllowedError' ? 'No se dio permiso a la cámara. Habilitalo en el candado de la barra de direcciones.' : 'No se pudo abrir la cámara: ' + e.message; });
+}
+function mostrarStream(s) {
+  cam.stream = s; var v = $('v'); v.srcObject = s; $('camara').style.display = 'block'; document.querySelectorAll('.abrir-cam').forEach(function (b) { b.style.display = 'none'; }); window.scrollTo(0, 0);
+  pausar(false); $('ultimo').style.display = 'none';
+  cam.luz = false; pintarLuz();
+  $('otra-cam').style.display = cam.traseras.length > 1 ? 'inline-block' : 'none';
+  try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (l) { cam.lock = l; }).catch(function () {}); } catch (e) {}
+  return v.play().then(function () { configurarCamara(s.getVideoTracks()[0]); });
+}
+function configurarCamara(tr) {
+  var cap = tr.getCapabilities ? tr.getCapabilities() : {}; cam.cap = cap;
+  var adv = [];
+  if ((cap.focusMode || []).indexOf('continuous') >= 0) adv.push({ focusMode: 'continuous' });
+  if (cap.zoom && cap.zoom.max > 1) {
+    var z = Number(leerLS('cr_cam_zoom')) || 2; z = Math.max(cap.zoom.min || 1, Math.min(z, cap.zoom.max)); cam.zoom = z; adv.push({ zoom: z });
+  } else cam.zoom = 1;
+  (adv.length ? tr.applyConstraints({ advanced: adv }) : Promise.resolve()).catch(function () {}).then(function () { pintarZoom(); pintarInfo(tr); });
+}
+function pintarZoom() {
+  var cap = cam.cap, z = $('zoom');
+  if (!cap.zoom || !(cap.zoom.max > 1)) { z.style.display = 'none'; return; }
+  var ops = [1, 2, 3].filter(function (n) { return n >= (cap.zoom.min || 1) && n <= cap.zoom.max; });
+  z.innerHTML = ops.map(function (n) { return '<button data-z="' + n + '"' + (Math.round(cam.zoom) === n ? ' class="on"' : '') + '>' + n + 'x</button>'; }).join('');
+  z.style.display = 'flex';
+}
+$('zoom').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-z]'); if (!b) return; e.stopPropagation();
+  var tr = cam.stream && cam.stream.getVideoTracks()[0]; if (!tr) return;
+  var n = Number(b.getAttribute('data-z'));
+  tr.applyConstraints({ advanced: [{ zoom: n }] }).then(function () { cam.zoom = n; guardarLS('cr_cam_zoom', n); pintarZoom(); pintarInfo(tr); }).catch(function () {});
+});
+function pintarInfo(tr) {
+  var st = tr.getSettings ? tr.getSettings() : {}, cap = cam.cap;
+  var nombre = String(tr.label || 'cámara').replace(/,?\s*facing back/i, '').replace(/camera2\s*/i, 'cámara ');
+  var foco = (cap.focusMode || []).indexOf('continuous') >= 0 ? 'foco automático' : ((cap.focusMode || []).length ? 'foco ' + cap.focusMode.join('/') : 'foco fijo');
+  $('caminfo').textContent = nombre + ' · ' + (st.width || '?') + '×' + (st.height || '?') + ' · ' + foco + ' · ' + (cap.zoom && cap.zoom.max > 1 ? 'zoom ' + cam.zoom + 'x' : 'sin zoom') + (cam.traseras.length ? ' · ' + cam.traseras.length + ' cámaras traseras' : '');
+}
+// Cambiar cámara: pasa a la siguiente trasera y la recuerda en el telefono.
+$('otra-cam').onclick = function () {
+  if (cam.traseras.length < 2 || !cam.stream) return;
+  var actual = (cam.stream.getVideoTracks()[0].getSettings() || {}).deviceId;
+  var i = cam.traseras.findIndex(function (d) { return d.deviceId === actual; });
+  var sig = cam.traseras[(i + 1) % cam.traseras.length];
+  cam.stream.getTracks().forEach(function (t) { t.stop(); });
+  pedidoCamara(sig.deviceId).then(function (s) { guardarLS('cr_cam_id', sig.deviceId); return mostrarStream(s); })
+    .catch(function (e) { aviso('No se pudo abrir esa cámara: ' + e.message, 'mal'); detenerCamara(); });
+};
+// Tocar enfoca en ese punto (si el telefono lo permite) y despues vuelve al foco continuo.
+function enfocarEn(e) {
+  var tr = cam.stream && cam.stream.getVideoTracks()[0], modos = cam.cap.focusMode || []; if (!tr || !modos.length) return;
+  var r = $('v').getBoundingClientRect(), c = { pointsOfInterest: [{ x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height }] };
+  if (modos.indexOf('single-shot') >= 0) c.focusMode = 'single-shot';
+  tr.applyConstraints({ advanced: [c] }).catch(function () {}).then(function () {
+    if (modos.indexOf('continuous') >= 0) setTimeout(function () { tr.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(function () {}); }, 1500);
+  });
 }
 // Linterna: siempre visible. Chrome en Android la maneja desde la camara trasera;
 // si el telefono no la expone al navegador, se avisa en vez de esconder el boton.
@@ -552,28 +637,39 @@ $('luz').onclick = function () {
     var st = tr.getSettings ? tr.getSettings() : {};
     if (quiero && st.torch === false) throw new Error('sin linterna');
     cam.luz = quiero; pintarLuz();
-  }).catch(function () { cam.luz = false; pintarLuz(); aviso('Este celular no deja prender la linterna desde Chrome. Probá con más luz en el depósito.', 'mal'); });
+  }).catch(function () { cam.luz = false; pintarLuz(); aviso('Esta cámara no deja prender la linterna desde Chrome. Probá con "Cámara" o con más luz.', 'mal'); });
 };
 function marcar(cl) { var k = $('camara'); k.classList.remove('leyendo', 'leido', 'fallo'); if (cl) k.classList.add(cl); }
-// Toma el codigo mas cercano al centro del recuadro, para no leer el de al lado.
-function elMasCentrado(r, v) {
-  var cx = v.videoWidth / 2, cy = v.videoHeight / 2, mejor = null, dm = Infinity;
+// Toma el codigo mas cercano al centro de la imagen analizada, para no leer el de al lado.
+function elMasCentrado(r, w, h) {
+  var cx = w / 2, cy = h / 2, mejor = null, dm = Infinity;
   r.forEach(function (b) { if (!b.rawValue) return; var q = b.boundingBox || {}; var x = (q.x || 0) + (q.width || 0) / 2, y = (q.y || 0) + (q.height || 0) / 2;
     var d = (x - cx) * (x - cx) + (y - cy) * (y - cy); if (d < dm) { dm = d; mejor = b; } });
   return mejor;
+}
+// Recorte ampliado del centro de la imagen (donde esta el recuadro): ayuda con codigos chicos.
+var lienzo = document.createElement('canvas'), lctx = lienzo.getContext('2d');
+function recorte(v) {
+  var w = v.videoWidth, h = v.videoHeight; if (!w || !h) return null;
+  var cw = Math.round(w * 0.7), ch = Math.round(h * 0.45), esc = Math.min(2, 2400 / cw);
+  lienzo.width = Math.round(cw * esc); lienzo.height = Math.round(ch * esc);
+  lctx.drawImage(v, Math.round((w - cw) / 2), Math.round((h - ch) / 2), cw, ch, 0, 0, lienzo.width, lienzo.height);
+  return lienzo;
 }
 function leerAhora() {
   if (cam.leyendo || cam.pausa || !cam.det) return;
   var v = $('v'); if (v.readyState < 2) return;
   cam.leyendo = true; marcar('leyendo');
-  var hasta = Date.now() + LEER_MS;
+  var hasta = Date.now() + LEER_MS, n = 0;
   (function intento() {
-    cam.det.detect(v).then(function (r) {
-      var b = r.length ? elMasCentrado(r, v) : null;
+    // Se alterna la imagen entera y el recorte ampliado del recuadro.
+    var fuente = (n++ % 2 === 1) ? recorte(v) : v, w = fuente === v ? v.videoWidth : (fuente ? fuente.width : 0), h = fuente === v ? v.videoHeight : (fuente ? fuente.height : 0);
+    (fuente ? cam.det.detect(fuente) : Promise.resolve([])).then(function (r) {
+      var b = r.length ? elMasCentrado(r, w, h) : null;
       if (b) { cam.leyendo = false; marcar('leido'); setTimeout(function () { marcar(''); }, 400); leido(b.rawValue, 'cam'); return; }
-      if (Date.now() < hasta) { setTimeout(intento, 100); return; }
+      if (Date.now() < hasta) { setTimeout(intento, 80); return; }
       cam.leyendo = false; marcar('fallo'); setTimeout(function () { marcar(''); }, 600);
-      sonido(false); aviso('No se leyó ningún código. Acercá el celular y volvé a tocar.', 'av');
+      sonido(false); aviso('No se leyó ningún código. Alejá el celular a unos 15 cm (con zoom 2x) y volvé a tocar.', 'av');
     }).catch(function () { cam.leyendo = false; marcar(''); });
   })();
 }
