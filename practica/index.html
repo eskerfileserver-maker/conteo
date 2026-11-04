@@ -226,7 +226,7 @@ td.n,th.n{text-align:right}
 <script>
 // Red de seguridad (04/11): si algo falla al cargar, se muestra el error en pantalla con un boton
 // para reiniciar (borra la sesion y el catalogo guardado; NO borra el conteo en curso).
-var VERSION = '2026-11-04 15:30';
+var VERSION = '2026-11-04 15:45';
 function mostrarFalla(msg) {
   try {
     var d = document.getElementById('falla');
@@ -328,6 +328,7 @@ function ingresar() {
     .finally(function () { $('entrar').disabled = false; $('entrar').textContent = 'Ingresar'; });
 }
 function entrarConteo() {
+  anclar();
   $('quien').textContent = S.nombre; $('salir').style.display = 'inline-block';
   S.items = leerLS(PFX + 'conteo_' + S.usuario) || [];
   S.recientes = leerLS('cr_recientes_' + S.usuario) || [];
@@ -680,6 +681,34 @@ function detenerCamara() {
   try { if (cam.lock) cam.lock.release(); } catch (e) {} cam.lock = null;
 }
 document.addEventListener('visibilitychange', function () { if (document.hidden) detenerCamara(); });
+
+// ---------- boton atras (04/11, pedido de Alfredo) ----------
+// Dentro de la app el boton atras del celular navega entre pantallas y nunca saca de la pagina:
+// cierra lo que este abierto (cliente, ventana, camara) o vuelve al inicio. Desde el inicio no sale:
+// avisa que se usa "Salir". Se mantiene siempre una entrada de historial propia ("ancla").
+function anclado() { return !!(history.state && history.state.app); }
+function anclar() { try { if (!anclado()) history.pushState({ app: 1 }, ''); } catch (e) {} }
+// Chrome puede saltear entradas agregadas sin un toque del usuario: se vuelve a anclar en el proximo toque.
+document.addEventListener('pointerdown', function () { if (S.usuario && S.vista !== 'p-login') anclar(); }, true);
+window.addEventListener('popstate', function () {
+  if (!S.usuario || S.vista === 'p-login') return;
+  anclar();
+  if ($('cliente').classList.contains('on')) { $('cliente').classList.remove('on'); return; }
+  if ($('modal').classList.contains('on')) { cerrarModal(); return; }
+  if (cam.stream) { detenerCamara(); return; }
+  if (S.vista === 'p-revisar') { pantalla('p-conteo'); pintarLista(); return; }
+  if (S.vista === 'p-resultado') {
+    if (leerLS(PFX + 'pendiente_' + S.usuario)) { aviso('Esperá a que termine de aplicarse el conteo.', 'av'); return; }
+    pantalla('p-conteo'); pintarLista(); return;
+  }
+  if (S.vista === 'p-precio' || S.vista === 'p-conteo') { pantalla('p-inicio'); return; }
+  aviso('Para salir usá el botón "Salir". El botón atrás no cierra la app.', 'av');
+});
+// Si igual se intenta cerrar o recargar con un conteo abierto o aplicandose, el navegador pide confirmar.
+window.addEventListener('beforeunload', function (e) {
+  if (!S.usuario) return;
+  if ((S.items && S.items.length) || leerLS(PFX + 'pendiente_' + S.usuario)) { e.preventDefault(); e.returnValue = ''; }
+});
 
 // ---------- consulta de precio (03/11, pedido de Alfredo) ----------
 // Precio a cobrar: el local cobra las promos de weis.com.ar. Si el SKU esta en la web y el
