@@ -316,7 +316,8 @@ function armarIndice(filas) {
   for (var i = 0; i < filas.length; i++) {
     var f = filas[i], c = f[0];
     if (f[4] === 'C') {
-      var p = { c: c, n: f[2], t: f[3], p: Number(f[5]) || 0, wl: Number(f[6]) || 0, wv: Number(f[7]) || 0, wf: f[8] || '', g: f[9] || ('F:' + c) };
+      var ml = null; if (f[10]) { try { ml = JSON.parse(f[10]); var vis = {}; ml.p = (ml.p || []).filter(function (x) { var k = JSON.stringify(x); if (vis[k]) return false; vis[k] = 1; return true; }); } catch (e) { ml = null; } }
+      var p = { c: c, n: f[2], t: f[3], p: Number(f[5]) || 0, wl: Number(f[6]) || 0, wv: Number(f[7]) || 0, wf: f[8] || '', g: f[9] || ('F:' + c), ml: ml };
       sku.set(String(c).toLowerCase(), p);
       var gg = grupos.get(p.g) || []; gg.push(p); grupos.set(p.g, gg);
     }
@@ -618,6 +619,14 @@ function pintarPrecio() {
   r.avisos.forEach(function (a) { h += '<div class="aviso-p">' + esc(a) + '</div>'; });
   h += '<div class="linea" style="margin-top:12px"><span>Precio Contabilium</span><b>' + (p.p ? plata(p.p) : 'sin precio') + '</b></div>';
   h += '<div class="linea"><span>weis.com.ar</span><b>' + (p.wf ? (p.wv < p.wl * 0.995 ? plata(p.wl) + ' → ' + plata(p.wv) : plata(p.wv)) + ' <span class="nota">· ' + esc(fechaCorta(p.wf)) + '</span>' : 'no está en el sitio') + '</b></div>';
+  // ML (03/11): solo para el vendedor. Premium = cuotas sin interes; Clasica = sin cuotas. Sin cantidad de cuotas.
+  if (p.ml && p.ml.p && p.ml.p.length) {
+    p.ml.p.forEach(function (x) {
+      h += '<div class="linea"><span>ML ' + (x[0] === 'K' ? 'KAYA' : 'ESKER') + '</span><b>' + (x[2] ? '<span class="tachado" style="font-size:13px;margin:0 6px 0 0">' + plata(x[2]) + '</span>' : '') + plata(x[1])
+        + '<br><span class="nota">' + (x[4] === 'P' ? 'Premium · cuotas sin interés' : 'Clásica · sin cuotas') + (x[3] ? ' · promo hasta ' + esc(x[3].slice(8, 10) + '/' + x[3].slice(5, 7)) : '') + '</span></b></div>';
+    });
+    h += '<p class="nota" style="margin:2px 0 0">ML: foto de publicaciones ' + esc(fechaCorta(p.ml.f)) + '. Solo de referencia: el local cobra el precio de arriba.</p>';
+  } else h += '<div class="linea"><span>MercadoLibre</span><b>sin publicación activa</b></div>';
   var st = p.t !== 'P' ? 'combo: sin stock propio' : (PR.err ? esc(PR.err) : (!s ? 'Consultando…' : (s.ok ? s.disponible + (s.disponible === 1 ? ' disponible' : ' disponibles') + (s.reservado ? ' <span class="nota">(+' + s.reservado + ' reserv.)</span>' : '') : esc(s.error))));
   h += '<div class="linea"><span>Stock depósito Principal</span><b>' + st + '</b></div>';
   if (PR.vars.length > 1) {
