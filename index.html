@@ -103,8 +103,11 @@ td.n,th.n{text-align:right}
 .grande{font-size:44px;font-weight:800;letter-spacing:-.02em;margin:10px 0 2px}
 .tachado{color:var(--suave);text-decoration:line-through;font-size:18px;display:inline-block;margin-top:12px}
 .promo{display:inline-block;background:#000;color:#fff;font-size:13px;font-weight:700;padding:3px 9px;border-radius:99px;margin-left:8px;vertical-align:middle}
-.linea{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--linea);font-size:14px}
+.linea{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--linea);font-size:14px}
 .linea span{color:var(--suave)}.linea b{text-align:right}
+.linea .et{display:flex;align-items:center;gap:10px;flex:none}
+.ico{width:28px;height:28px;border-radius:8px;background:#000;color:#fff;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.ico svg{width:16px;height:16px}.ico.w svg{width:20px;height:auto}
 .aviso-p{background:var(--avf);color:var(--av);border-radius:10px;padding:9px 11px;font-size:13px;font-weight:600;margin-top:10px}
 .talles{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
 .talle{min-width:56px;text-align:center;padding:8px 10px;border-radius:10px;border:1px solid #cfcfcf;font-weight:700;font-size:14px;background:#fff;color:#000}
@@ -617,18 +620,26 @@ function pintarPrecio() {
   if (r.promo) h += '<div><span class="tachado">' + plata(r.lista) + '</span><span class="promo">−' + r.pct + '%</span></div>';
   h += '<div class="grande">' + (r.cobrar ? plata(r.cobrar) : 'Sin precio') + '</div><div class="nota">Precio de contado' + (r.web ? (r.promo ? ' · promo de weis.com.ar' : ' · igual a weis.com.ar') : '') + '</div>';
   r.avisos.forEach(function (a) { h += '<div class="aviso-p">' + esc(a) + '</div>'; });
-  h += '<div class="linea" style="margin-top:12px"><span>Precio Contabilium</span><b>' + (p.p ? plata(p.p) : 'sin precio') + '</b></div>';
-  h += '<div class="linea"><span>weis.com.ar</span><b>' + (p.wf ? (p.wv < p.wl * 0.995 ? plata(p.wl) + ' → ' + plata(p.wv) : plata(p.wv)) + ' <span class="nota">· ' + esc(fechaCorta(p.wf)) + '</span>' : 'no está en el sitio') + '</b></div>';
+  // Iconos de origen (03/11, pedido de Alfredo): Contabilium y ML con iconos genericos, weis con su simbolo.
+  var IC = {
+    cb: '<i class="ico" title="Contabilium"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></i>',
+    w: '<i class="ico w" title="weis.com.ar"><svg viewBox="3 3 193 97"><use href="#weis" x="3" y="3" width="402" height="97"/></svg></i>',
+    ml: '<i class="ico" title="MercadoLibre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></i>',
+    st: '<i class="ico" title="Stock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg></i>'
+  };
+  var et = function (ic, txt) { return '<span class="et">' + IC[ic] + '<span>' + txt + '</span></span>'; };
+  h += '<div class="linea" style="margin-top:12px">' + et('cb', 'Contabilium') + '<b>' + (p.p ? plata(p.p) : 'sin precio') + '</b></div>';
+  h += '<div class="linea">' + et('w', 'weis.com.ar') + '<b>' + (p.wf ? (p.wv < p.wl * 0.995 ? plata(p.wl) + ' → ' + plata(p.wv) : plata(p.wv)) + ' <span class="nota">· ' + esc(fechaCorta(p.wf)) + '</span>' : 'no está en el sitio') + '</b></div>';
   // ML (03/11): solo para el vendedor. Premium = cuotas sin interes; Clasica = sin cuotas. Sin cantidad de cuotas.
   if (p.ml && p.ml.p && p.ml.p.length) {
     p.ml.p.forEach(function (x) {
-      h += '<div class="linea"><span>ML ' + (x[0] === 'K' ? 'KAYA' : 'ESKER') + '</span><b>' + (x[2] ? '<span class="tachado" style="font-size:13px;margin:0 6px 0 0">' + plata(x[2]) + '</span>' : '') + plata(x[1])
+      h += '<div class="linea">' + et('ml', 'ML ' + (x[0] === 'K' ? 'KAYA' : 'ESKER')) + '<b>' + (x[2] ? '<span class="tachado" style="font-size:13px;margin:0 6px 0 0">' + plata(x[2]) + '</span>' : '') + plata(x[1])
         + '<br><span class="nota">' + (x[4] === 'P' ? 'Premium · cuotas sin interés' : 'Clásica · sin cuotas') + (x[3] ? ' · promo hasta ' + esc(x[3].slice(8, 10) + '/' + x[3].slice(5, 7)) : '') + '</span></b></div>';
     });
     h += '<p class="nota" style="margin:2px 0 0">ML: foto de publicaciones ' + esc(fechaCorta(p.ml.f)) + '. Solo de referencia: el local cobra el precio de arriba.</p>';
-  } else h += '<div class="linea"><span>MercadoLibre</span><b>sin publicación activa</b></div>';
+  } else h += '<div class="linea">' + et('ml', 'MercadoLibre') + '<b>sin publicación activa</b></div>';
   var st = p.t !== 'P' ? 'combo: sin stock propio' : (PR.err ? esc(PR.err) : (!s ? 'Consultando…' : (s.ok ? s.disponible + (s.disponible === 1 ? ' disponible' : ' disponibles') + (s.reservado ? ' <span class="nota">(+' + s.reservado + ' reserv.)</span>' : '') : esc(s.error))));
-  h += '<div class="linea"><span>Stock depósito Principal</span><b>' + st + '</b></div>';
+  h += '<div class="linea">' + et('st', 'Stock Principal') + '<b>' + st + '</b></div>';
   if (PR.vars.length > 1) {
     h += '<div class="linea" style="border-bottom:0;padding-bottom:2px"><span>Variantes del modelo</span><b>' + PR.vars.length + '</b></div><div class="talles">'
       + PR.vars.map(function (v, i) { var sv = PR.stock[v.c.toLowerCase()], d = sv && sv.ok ? sv.disponible : null;
