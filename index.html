@@ -33,6 +33,8 @@ body.login #entrar{padding:15px;font-size:17px}
 header .quien{font-size:13px;opacity:.85}
 header button{padding:7px 12px;font-size:13px;background:rgba(255,255,255,.14)}
 #modo{display:none;background:var(--avf);color:var(--av);font-size:13px;font-weight:700;text-align:center;padding:6px 16px;border-bottom:1px solid #f3d27a}
+#modo.real{background:var(--mal);color:#fff;border-bottom-color:#9b1c1c}
+.hero .etq{display:inline-block;margin-top:12px;background:#facc15;color:#000;font-size:12px;font-weight:800;letter-spacing:.1em;padding:3px 10px;border-radius:99px}
 main{padding:12px 16px 120px;max-width:720px;margin:0 auto}
 .carta{background:var(--carta);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
 .pant{display:none}.pant.on{display:block}
@@ -94,14 +96,14 @@ td.n,th.n{text-align:right}
 </head>
 <body class="login">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="weis" viewBox="3 3 402 97"><path fill="currentColor" fill-rule="evenodd" d="M305.5 98.1C314.2 96.6 321.1 90.9 323.7 83.0C324.0 82.2 324.2 81.1 324.2 80.8L324.1 80.1 L319.2 80.1C316.6 80.0 314.1 80.0 313.8 80.1C313.4 80.2 312.9 80.9 312.2 82.3C310.1 86.4 307.5 88.1 302.5 88.8C298.7 89.3 294.7 88.5 292.2 86.8C289.9 85.2 287.4 81.6 286.9 79.1C286.8 78.6 286.5 77.9 286.3 77.5C286.1 77.0 286.0 76.2 286.1 75.1L286.1 73.4 L305.5 73.3C319.3 73.3 324.9 73.2 325.2 73.0C325.7 72.6 325.6 66.2 325.1 63.8C324.7 62.0 323.9 59.2 323.1 57.4C320.9 51.9 316.7 47.2 311.7 44.6C310.9 44.1 310.0 43.6 309.9 43.5C309.7 43.3 308.2 42.9 306.6 42.5C304.0 41.8 303.3 41.8 300.0 41.8C297.2 41.7 295.8 41.9 294.1 42.3C291.7 42.8 289.0 43.8 288.0 44.5C287.6 44.8 287.2 45.0 287.1 45.0C286.7 45.0 283.1 47.9 281.6 49.6C279.8 51.5 277.0 55.7 277.0 56.5C277.0 56.8 276.8 57.1 276.7 57.2C276.2 57.6 275.8 58.9 274.8 62.5C274.2 64.9 274.2 65.5 274.1 70.4C274.1 75.7 274.2 76.5 275.4 80.8C276.3 84.4 278.7 88.5 281.6 91.4C285.4 95.2 290.1 97.5 295.8 98.3C297.5 98.6 303.6 98.5 305.5 98.1Z M387.7 97.9C388.9 97.7 389.9 97.4 390.1 97.3C390.2 97.2 390.7 97.0 391.1 96.9C392.1 96.7 395.9 94.8 397.2 93.9C397.9 93.5 398.9 92.6 399.6 92.0C400.9 90.7 403.0 87.6 403.0 86.8C403.0 86.6 403.2 86.1 403.4 85.7C403.8 85.2 403.9 84.5 403.9 81.1C403.9 78.1 403.8 77.0 403.5 76.5C403.3 76.2 403.0 75.5 402.9 75.1C402.0 72.6 399.0 69.7 395.8 68.1C393.9 67.2 390.4 66.0 389.6 66.0C389.3 66.0 388.6 65.8 388.2 65.7C387.7 65.5 386.8 65.2 386.0 65.0C385.2 64.9 384.2 64.6 383.6 64.5C374.4 62.4 373.9 62.3 371.9 60.8C370.2 59.6 369.2 58.1 369.2 56.6C369.2 55.6 369.9 54.1 370.7 53.5C372.7 51.7 377.7 50.9 381.9 51.6C384.7 52.1 386.4 52.8 387.4 53.8C388.3 54.7 389.2 56.4 389.2 57.0C389.2 57.2 389.5 57.6 389.7 57.9C390.1 58.2 390.8 58.3 395.9 58.3C399.0 58.2 401.7 58.2 401.8 58.1C402.3 57.8 401.8 55.2 401.1 53.3C398.7 47.7 394.1 44.1 387.6 42.5C384.5 41.7 376.8 41.5 373.6 42.1C368.7 43.0 366.4 43.8 363.4 45.8C361.9 46.9 359.3 49.7 358.6 51.1C357.7 52.9 357.2 55.8 357.4 58.2C357.7 62.3 358.6 64.5 361.0 67.1C362.2 68.4 363.0 68.9 365.3 70.1C368.9 71.9 369.8 72.1 377.0 73.7C378.0 73.9 379.7 74.3 380.8 74.5C381.8 74.8 383.0 75.0 383.3 75.0C383.6 75.0 384.1 75.2 384.4 75.3C384.7 75.5 385.2 75.8 385.6 75.8C386.8 76.2 389.3 77.5 390.2 78.3C391.5 79.5 391.8 80.4 391.8 82.2C391.9 85.6 390.1 87.4 385.6 88.4C383.0 89.0 378.0 89.0 375.7 88.4C374.1 88.0 372.0 87.0 370.8 86.0C370.1 85.4 368.8 82.9 368.5 81.4C368.3 80.7 368.1 80.0 368.0 79.9C367.8 79.7 356.9 79.6 356.5 79.8C356.1 80.1 356.2 82.7 356.6 83.5C356.8 83.8 357.0 84.5 357.0 85.0C357.0 86.3 358.8 89.7 360.5 91.6C361.8 93.0 362.7 93.7 365.1 95.2C366.2 95.8 368.2 96.7 368.9 96.9C369.3 97.0 369.8 97.2 369.9 97.3C370.1 97.4 371.4 97.8 372.9 98.0C376.3 98.6 384.4 98.5 387.7 97.9Z M56.8 96.6C57.7 96.0 58.2 95.3 62.7 88.9C63.3 88.0 64.7 86.0 65.8 84.6C66.8 83.2 68.0 81.5 68.5 80.7C69.0 80.0 69.9 78.7 70.5 77.9C71.1 77.0 72.1 75.8 72.6 75.0C73.1 74.2 74.2 72.7 75.0 71.6C75.8 70.5 76.7 69.3 76.9 68.9C77.1 68.5 77.7 67.7 78.1 67.1C78.6 66.5 79.5 65.3 80.2 64.3C80.8 63.3 82.4 61.1 83.6 59.4C84.9 57.7 86.8 54.9 87.9 53.3C89.1 51.7 90.1 50.2 90.4 49.9C90.6 49.7 91.6 48.3 92.6 46.8C93.6 45.3 94.4 44.1 94.5 44.0C94.8 43.8 97.2 40.4 98.3 38.8C98.9 37.9 99.4 37.1 99.5 37.0C99.7 36.9 100.3 36.0 100.9 35.1C101.6 34.1 103.9 30.8 106.0 27.8C108.2 24.8 110.3 21.8 110.8 21.2C111.2 20.5 111.9 19.5 112.3 19.0C112.7 18.4 113.3 17.6 113.7 17.0C114.1 16.5 115.3 14.7 116.5 13.1C117.7 11.5 118.8 9.9 119.0 9.5C119.2 9.2 119.7 8.5 120.1 8.0C121.6 6.1 122.0 5.5 122.0 5.1C121.9 4.7 121.0 4.6 108.0 4.6C94.2 4.6 94.0 4.6 93.3 5.1C92.6 5.7 91.0 7.6 89.9 9.2C89.6 9.7 88.6 11.0 87.7 12.2C85.1 15.5 82.7 18.7 82.2 19.4C82.0 19.8 81.4 20.6 80.9 21.2C79.4 23.1 77.2 26.1 76.6 26.8C76.4 27.2 75.5 28.3 74.7 29.3C74.0 30.3 73.2 31.4 73.0 31.6C72.8 31.9 71.9 33.1 71.0 34.3C70.1 35.5 68.5 37.5 67.5 38.9C66.5 40.2 65.5 41.6 65.3 41.8C65.1 42.1 64.1 43.4 63.1 44.6C62.2 45.8 61.1 47.3 60.8 47.8C60.4 48.3 58.4 50.9 56.4 53.6C54.3 56.3 52.5 58.8 52.3 59.1C52.0 59.4 51.0 60.7 50.0 62.1C49.0 63.4 47.8 64.9 47.4 65.4C47.1 65.9 46.2 67.2 45.4 68.2C44.7 69.1 44.0 70.1 43.9 70.4C43.7 70.6 43.4 70.8 43.1 70.8C42.7 70.9 42.6 70.7 42.5 69.2C42.4 67.9 42.1 67.1 41.0 65.0C40.3 63.6 39.5 62.2 39.4 62.0C39.2 61.8 39.0 61.3 38.9 61.0C38.8 60.7 38.0 59.0 37.1 57.2C35.0 53.0 35.0 53.0 33.3 49.5C31.5 45.9 31.0 45.3 29.6 44.5C28.7 44.0 28.4 44.0 16.8 44.0C9.6 44.0 4.7 44.1 4.5 44.2C4.2 44.4 4.2 44.6 4.4 44.9C4.6 45.2 5.4 46.7 6.1 48.2C6.9 49.8 8.0 51.9 8.4 52.9C9.5 54.9 10.4 56.8 11.8 59.6C12.3 60.7 13.0 62.1 13.3 62.8C14.3 64.5 27.6 91.5 28.3 93.1C29.4 95.4 30.6 96.6 32.1 97.0C32.5 97.1 38.0 97.2 44.4 97.2C55.8 97.1 55.9 97.1 56.8 96.6Z M127.1 97.0C128.3 96.7 129.3 95.8 130.4 94.1C130.9 93.4 131.6 92.4 132.0 91.9C132.4 91.3 133.3 90.0 134.1 88.9C134.9 87.8 136.1 86.1 136.8 85.1C137.5 84.2 138.4 82.8 138.9 82.1C139.3 81.4 140.1 80.3 140.7 79.6C141.2 78.9 142.3 77.4 143.1 76.2C144.4 74.3 146.5 71.3 149.2 67.5C149.7 66.8 150.2 66.1 150.4 65.9C150.5 65.8 151.0 65.1 151.4 64.5C151.8 63.9 152.8 62.5 153.6 61.3C154.4 60.2 155.5 58.7 156.0 58.0C156.5 57.3 157.4 56.0 158.0 55.2C158.7 54.3 159.8 52.8 160.5 51.8C161.2 50.7 162.6 48.7 163.6 47.3C164.6 45.9 166.2 43.6 167.1 42.2C168.1 40.9 169.5 39.0 170.2 38.0C170.9 37.1 172.0 35.4 172.7 34.4C173.5 33.3 174.3 32.1 174.5 31.9C174.7 31.6 175.5 30.6 176.2 29.6C176.8 28.6 178.1 26.9 178.9 25.7C181.3 22.4 182.6 20.5 184.4 17.9C185.4 16.5 186.9 14.3 187.9 13.0C188.8 11.7 190.0 10.0 190.5 9.2C191.1 8.5 191.9 7.3 192.5 6.6C194.3 4.4 195.1 4.5 179.6 4.5C167.4 4.5 165.9 4.5 165.1 4.9C164.3 5.3 163.0 6.7 161.5 9.0C161.1 9.5 160.2 10.7 159.5 11.7C158.7 12.6 156.7 15.2 155.0 17.5C153.3 19.8 150.7 23.2 149.3 25.1C147.8 27.0 145.9 29.5 145.1 30.6C144.3 31.7 143.0 33.4 142.3 34.3C141.6 35.2 141.0 36.0 141.0 36.1C141.0 36.2 140.3 37.2 139.3 38.3C138.4 39.4 135.9 42.8 133.7 45.7C131.5 48.7 129.6 51.2 129.5 51.2C129.4 51.3 128.8 52.1 128.2 53.0C126.8 54.9 126.6 55.2 125.2 57.0C122.7 60.1 119.6 64.3 119.2 64.9C119.0 65.3 118.5 66.0 118.0 66.5C117.6 67.0 116.7 68.2 116.1 69.1C114.3 71.7 114.0 71.8 114.0 69.6C114.0 68.5 113.7 67.8 112.0 64.3C110.9 62.2 109.3 58.9 108.4 57.0C107.5 55.1 106.6 53.5 106.4 53.2C106.2 53.0 106.0 52.6 105.9 52.2C105.5 50.9 102.4 44.9 101.9 44.7C101.6 44.5 101.4 44.7 100.9 45.4C100.2 46.5 98.6 48.8 95.1 53.7C93.8 55.7 91.9 58.3 91.0 59.6C90.1 60.9 88.7 63.0 87.9 64.1L86.4 66.3 L87.4 68.3C88.0 69.5 88.8 71.0 89.2 71.8C89.6 72.5 91.3 75.9 93.0 79.4C94.6 82.8 96.2 85.9 96.4 86.2C96.9 87.2 99.2 92.0 99.9 93.4C100.7 95.1 102.2 96.7 103.2 97.0C104.6 97.3 125.9 97.3 127.1 97.0Z M222.6 96.9C222.8 96.8 223.0 96.5 223.0 96.1C223.0 95.8 223.2 95.2 223.4 94.8C223.5 94.4 223.8 93.6 223.9 92.9C224.0 92.2 224.2 91.3 224.3 91.0C224.4 90.7 224.7 89.8 224.9 89.0C225.1 88.2 225.6 86.2 226.0 84.4C226.4 82.6 226.9 80.6 227.0 80.0C227.1 79.4 227.4 78.3 227.6 77.6C227.8 77.0 228.0 76.2 228.0 75.8C228.0 75.5 228.2 74.9 228.3 74.4C228.7 73.6 231.5 62.3 232.1 58.9C232.3 57.9 232.9 58.1 233.2 59.2C233.3 59.7 233.6 61.0 233.9 62.0C234.3 64.0 234.8 65.8 235.5 68.2C235.7 69.1 236.5 72.4 237.3 75.5C238.0 78.6 238.6 81.2 238.7 81.3C238.8 81.6 240.0 86.3 240.0 86.7C240.0 87.0 240.2 87.6 240.3 88.1C240.7 88.8 241.9 93.9 242.2 95.7C242.2 96.1 242.5 96.6 242.6 96.8C243.1 97.2 254.5 97.1 254.9 96.7C255.2 96.3 257.0 90.8 257.0 90.1C257.0 89.9 257.2 89.4 257.3 89.0C257.8 88.2 258.4 86.2 259.9 81.2C260.5 79.1 261.1 77.0 261.3 76.6C261.4 76.2 261.8 75.0 262.2 73.9C262.5 72.8 263.1 71.1 263.4 70.1C263.7 69.2 264.0 67.9 264.1 67.4C264.2 66.9 264.5 66.1 264.7 65.8C264.8 65.4 265.0 65.0 265.0 64.8C265.0 64.5 265.4 63.4 265.8 62.2C266.2 61.1 266.9 58.7 267.4 57.0C267.9 55.3 268.4 53.5 268.6 53.0C268.8 52.5 269.2 51.3 269.5 50.2C269.8 49.2 270.2 48.0 270.4 47.5C271.1 45.6 271.6 43.8 271.4 43.4C271.3 43.0 270.6 43.0 265.7 43.0C261.6 43.0 260.0 43.1 259.7 43.3C259.5 43.5 259.2 44.1 259.0 44.6C257.9 48.9 257.3 51.3 257.0 52.6C256.8 53.3 256.6 54.1 256.5 54.1C256.4 54.2 256.2 54.5 256.2 54.8C256.2 55.3 255.9 56.5 254.7 60.5C254.5 61.4 254.1 62.9 253.9 63.9C253.7 64.9 253.4 66.0 253.3 66.3C253.1 66.6 252.8 67.8 252.5 69.0C251.9 71.2 251.1 74.2 250.7 75.2C250.6 75.6 250.2 77.2 249.9 78.8C249.1 82.2 248.8 82.8 248.4 82.7C248.3 82.6 248.0 81.8 247.9 80.9C247.5 78.8 246.8 75.7 246.4 74.4C246.2 73.8 245.9 72.7 245.7 71.8C245.6 70.9 245.3 70.2 245.2 70.1C245.1 70.0 245.0 69.7 245.0 69.4C245.0 69.1 244.8 68.3 244.6 67.7C244.4 67.1 244.1 65.9 243.9 65.0C243.6 63.6 242.1 57.7 240.9 53.1C240.7 52.4 240.2 50.6 239.8 49.0C239.4 47.5 238.9 46.1 238.7 46.0C238.5 45.9 235.9 45.8 232.9 45.8C226.6 45.7 226.8 45.7 226.2 48.3C225.9 49.2 225.2 51.8 224.6 54.2C224.0 56.7 223.3 59.2 223.2 59.9C223.1 60.6 222.8 61.5 222.6 61.9C222.4 62.3 222.1 63.4 221.9 64.2C221.4 66.1 220.6 69.4 219.6 72.8C219.3 74.2 219.0 75.5 219.0 75.8C219.0 76.1 218.9 76.6 218.7 76.9C218.5 77.2 218.2 78.0 218.0 78.8C217.5 80.7 217.0 82.0 216.7 81.9C216.5 81.9 216.3 81.4 216.2 80.9C216.0 80.3 215.8 79.4 215.6 78.8C215.4 78.1 215.1 76.9 214.9 76.0C214.4 73.6 212.8 67.2 212.5 66.4C212.3 66.0 212.1 65.0 211.9 64.2C211.7 63.5 211.3 62.0 211.0 61.0C210.8 60.0 210.1 57.4 209.6 55.4C209.1 53.3 208.6 51.3 208.5 50.9C208.2 50.0 207.3 46.8 207.0 45.3C206.9 44.7 206.6 44.0 206.4 43.6L206.0 43.0 L200.3 43.0C193.7 42.9 193.8 42.9 194.2 44.7C194.5 46.1 196.2 51.8 196.6 53.0C196.8 53.5 197.3 54.9 197.6 56.1C198.0 57.4 198.4 58.6 198.5 58.9C198.6 59.1 199.1 60.7 199.5 62.2C199.9 63.8 200.4 65.5 200.6 66.0C201.2 67.4 202.0 70.2 202.0 70.6C202.0 70.7 202.2 71.2 202.4 71.6C202.6 71.9 202.9 72.9 203.1 73.7C203.8 76.3 204.5 78.6 204.7 79.4C205.0 80.1 205.5 81.8 206.1 83.8C207.3 87.4 207.6 88.5 207.7 89.1C208.5 91.9 209.3 94.5 209.6 95.0C209.8 95.3 210.0 95.9 210.1 96.3C210.2 96.7 210.4 97.0 210.7 97.0C211.4 97.2 222.3 97.0 222.6 96.9Z M346.3 96.8C346.4 96.8 346.5 85.4 346.5 71.5C346.5 48.8 346.5 46.3 346.1 46.2C345.9 46.1 343.2 46.0 340.2 46.0C335.1 46.0 334.8 46.0 334.5 46.5C334.1 47.2 334.2 96.0 334.6 96.6C334.8 96.9 335.5 97.0 339.9 97.1C344.6 97.1 345.9 97.1 346.3 96.8Z M286.1 67.5C286.0 67.3 286.0 66.2 286.0 64.9C286.0 63.1 286.1 62.3 286.5 61.6C286.8 61.1 287.0 60.5 287.0 60.4C287.0 59.9 288.2 57.7 289.1 56.5C289.6 55.9 290.0 55.4 290.0 55.3C290.2 54.9 292.5 53.3 293.7 52.7C295.1 51.9 298.2 51.3 300.0 51.3C301.7 51.2 304.3 51.9 305.8 52.7C307.4 53.5 310.5 56.5 311.2 58.0C312.5 60.5 313.4 64.3 313.0 64.9C312.7 65.2 310.9 65.2 300.6 65.2L288.6 65.2 L288.0 65.9C287.6 66.3 287.2 66.9 287.0 67.2C286.7 67.8 286.4 67.9 286.1 67.5Z M346.1 39.2C346.5 38.9 346.5 38.3 346.5 33.7C346.6 29.5 346.5 28.4 346.2 28.2C346.0 28.1 343.4 28.0 340.3 28.0C336.1 28.0 334.7 28.1 334.5 28.3C334.4 28.5 334.3 30.4 334.3 33.7C334.4 38.4 334.4 38.8 334.9 39.1C335.5 39.6 345.4 39.7 346.1 39.2Z"/></symbol></svg>
-<header><div class="marca"><svg viewBox="3 3 402 97" role="img" aria-label="weis"><use href="#weis"/></svg><span>Conteo</span></div><span class="quien" id="quien"></span><button id="salir" style="display:none">Salir</button></header>
+<header><div class="marca"><svg viewBox="3 3 402 97" role="img" aria-label="weis"><use href="#weis"/></svg><span id="h-modo">Conteo</span></div><span class="quien" id="quien"></span><button id="salir" style="display:none">Salir</button></header>
 <div id="modo">SIMULACIÓN: no se escribe nada en Contabilium</div>
 <div id="aviso"></div>
 <main>
 
 <!-- INGRESO -->
 <section class="pant on" id="p-login">
-  <div class="hero"><svg viewBox="3 3 402 97" role="img" aria-label="weis"><use href="#weis"/></svg><h1>Conteo de stock</h1><p>Depósito Principal</p></div>
+  <div class="hero"><svg viewBox="3 3 402 97" role="img" aria-label="weis"><use href="#weis"/></svg><h1 id="t-hero">Conteo de stock</h1><p id="s-hero">Depósito Principal</p><div id="e-hero"></div></div>
   <div class="carta">
     <label for="u">Usuario</label>
     <input id="u" autocomplete="username" autocapitalize="none" spellcheck="false">
@@ -163,6 +165,12 @@ td.n,th.n{text-align:right}
 // Lo contado es el DISPONIBLE (lo vendido sin entregar se separa antes).
 // ============================================================
 var API = 'https://eskerfileserver.app.n8n.cloud/webhook/conteo-api';
+// Esta misma pagina se publica dos veces (03/11, decision de Alfredo): /conteo/ es el conteo
+// REAL y /conteo/practica/ la PRACTICA. Solo cambia esta linea (practica.sh la genera).
+// El servidor decide igual: un pedido REAL solo se acepta si el usuario tiene real = si.
+var MODO_PAGINA = 'REAL';
+var REAL = MODO_PAGINA === 'REAL';
+var PFX = REAL ? 'cr_' : 'crp_';      // conteos en curso separados por modo
 var LEER_MS = 1200;      // al tocar, se busca un codigo durante este tiempo como maximo
 var S = { usuario: '', pin: '', nombre: '', modo: '', umbral: 5, max: 200, items: [], elegidos: {}, cat: null };
 
@@ -187,7 +195,7 @@ function sonido(ok) {
 }
 function llamar(cuerpo, ms) {
   var c = new AbortController(), t = setTimeout(function () { c.abort(); }, ms || 60000);
-  var b = Object.assign({ usuario: S.usuario, pin: S.pin }, cuerpo);
+  var b = Object.assign({ usuario: S.usuario, pin: S.pin, modo: MODO_PAGINA }, cuerpo);
   return fetch(API, { method: 'POST', mode: 'cors', cache: 'no-store', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(b), signal: c.signal })
     .then(function (r) { if (!r.ok) throw new Error('El servidor respondió ' + r.status); return r.json(); })
     .catch(function (e) { if (e.name === 'AbortError') throw new Error('Sin respuesta del servidor. Revisá la conexión.'); if (/fetch/i.test(e.message)) throw new Error('Sin conexión con el servidor.'); throw e; })
@@ -221,23 +229,24 @@ function ingresar() {
   llamar(cuerpo).then(function (r) {
     if (r.crear_pin) { crearPin = true; $('b-pin').style.display = 'none'; $('b-nuevo').style.display = 'block'; err.textContent = r.error || ''; return; }
     if (!r.ok) { err.textContent = r.error || 'No se pudo ingresar'; return; }
+    if (r.modo !== MODO_PAGINA) { err.textContent = 'El servidor respondió en otro modo (' + (r.modo || '?') + '). No se puede seguir.'; return; }
     S.pin = pin; S.nombre = r.nombre || u; S.modo = r.modo || ''; S.umbral = r.umbral || 5; S.max = r.max_items || 200;
     guardarLS('cr_usuario', u);
-    try { sessionStorage.setItem('cr_ses', JSON.stringify({ u: u, p: pin, n: S.nombre, m: S.modo, um: S.umbral, mx: S.max })); } catch (e) {}
+    try { sessionStorage.setItem(PFX + 'ses', JSON.stringify({ u: u, p: pin, n: S.nombre, m: S.modo, um: S.umbral, mx: S.max })); } catch (e) {}
     entrarConteo();
   }).catch(function (e) { err.textContent = e.message; })
     .finally(function () { $('entrar').disabled = false; $('entrar').textContent = 'Ingresar'; });
 }
 function entrarConteo() {
   $('quien').textContent = S.nombre; $('salir').style.display = 'inline-block';
-  $('modo').style.display = S.modo === 'REAL' ? 'none' : 'block';
-  S.items = leerLS('cr_conteo_' + S.usuario) || [];
+  $('modo').style.display = 'block';
+  S.items = leerLS(PFX + 'conteo_' + S.usuario) || [];
   pantalla('p-conteo'); pintarLista();
   cargarCatalogo().then(function () { pedirStock(S.items.filter(function (i) { return !i.st || i.st.error; }).map(function (i) { return i.c; })); });
 }
 $('salir').onclick = function () {
-  try { sessionStorage.removeItem('cr_ses'); } catch (e) {}
-  S.pin = ''; $('pin').value = ''; $('salir').style.display = 'none'; $('quien').textContent = ''; $('modo').style.display = 'none';
+  try { sessionStorage.removeItem(PFX + 'ses'); } catch (e) {}
+  S.pin = ''; $('pin').value = ''; $('salir').style.display = 'none'; $('quien').textContent = '';
   crearPin = false; $('b-pin').style.display = 'block'; $('b-nuevo').style.display = 'none'; pantalla('p-login');
 };
 
@@ -293,7 +302,7 @@ function buscar(txt) {
 }
 
 // ---------- conteo ----------
-function guardarConteo() { if (!guardarLS('cr_conteo_' + S.usuario, S.items)) aviso('No se pudo guardar en el teléfono. No cierres la página.', 'mal'); }
+function guardarConteo() { if (!guardarLS(PFX + 'conteo_' + S.usuario, S.items)) aviso('No se pudo guardar en el teléfono. No cierres la página.', 'mal'); }
 function leido(cod, origen) {
   if (!S.cat) { sonido(false); aviso('Esperá a que baje el catálogo', 'mal'); return; }
   var k = String(cod).trim().toLowerCase();
@@ -357,6 +366,8 @@ function difDe(it) { return it.st && !it.st.error ? it.q - it.st.disponible : nu
 function esAlerta(it) { var d = difDe(it); return d !== null && d !== 0 && (it.q === 0 || Math.abs(d) > S.umbral); }
 function pintarLista() {
   var l = $('lista');
+  // Si se esta editando una cantidad, primero se cierra la edicion (su 'change' vuelve a pintar).
+  if (l.contains(document.activeElement)) document.activeElement.blur();
   if (!S.items.length) { l.innerHTML = '<div class="vacio">Todavía no contaste nada.<br>Escaneá o escribí el primer producto.</div>'; pintarPie('p-conteo'); return; }
   l.innerHTML = S.items.map(function (it, i) {
     var d = difDe(it), cl = esAlerta(it) ? 'alerta' : (d === 0 ? 'igual' : ''), sis, chip = '';
@@ -495,7 +506,7 @@ function revisar() {
   var ok = S.items.filter(function (i) { return i.st && !i.st.error; });
   var camb = ok.filter(function (i) { return i.q !== i.st.disponible; }), al = camb.filter(esAlerta);
   var h = '<h3 style="margin-top:0">Revisar antes de aplicar</h3>';
-  if (S.modo !== 'REAL') h += '<p class="chip av" style="font-size:13px">SIMULACIÓN: no se va a escribir nada</p>';
+  h += REAL ? '<p class="chip mal" style="font-size:13px">REAL: se escribe en Contabilium</p>' : '<p class="chip av" style="font-size:13px">PRÁCTICA: no se va a escribir nada</p>';
   h += '<p>' + ok.length + (ok.length === 1 ? ' SKU contado' : ' SKU contados') + ': <b>' + camb.length + (camb.length === 1 ? ' cambia' : ' cambian') + '</b>, ' + (ok.length - camb.length) + ((ok.length - camb.length) === 1 ? ' coincide' : ' coinciden') + ' con el sistema.</p>';
   if (conErr.length) h += '<p style="color:var(--mal);font-size:14px">' + conErr.length + ' SKU no se pudieron consultar y <b>no se aplican</b>: ' + conErr.map(function (i) { return esc(i.c); }).join(', ') + '.</p>';
   if (camb.length) {
@@ -504,21 +515,31 @@ function revisar() {
     h += '<p class="nota">Lo contado es lo disponible. Lo reservado (vendido sin entregar) se mantiene: en Contabilium queda contado + reservado.</p>';
   }
   if (al.length) h += '<label class="chk"><input type="checkbox" id="conf"><span><b>' + al.length + ' SKU con alerta</b> (quedan en 0 o difieren más de ' + S.umbral + '). Los volví a contar y están bien.</span></label>';
-  h += '<button id="aplicar" style="width:100%;margin-top:8px"' + (camb.length && !al.length ? '' : ' disabled') + '>' + (camb.length ? 'Aplicar ' + camb.length + (camb.length === 1 ? ' cambio' : ' cambios') + (S.modo === 'REAL' ? '' : ' (simulación)') : 'No hay nada que cambiar') + '</button>';
+  h += '<button id="aplicar" style="width:100%;margin-top:8px"' + (camb.length && !al.length ? '' : ' disabled') + '>' + (camb.length ? 'Aplicar ' + camb.length + (camb.length === 1 ? ' cambio' : ' cambios') + (REAL ? '' : ' (práctica)') : 'No hay nada que cambiar') + '</button>';
   h += '<div class="err" id="e-rev"></div>';
   if (!camb.length && ok.length) h += '<button class="sec" id="cerrar-sin" style="width:100%;margin-top:8px">Terminar: todo coincide</button>';
   $('rev').innerHTML = h; pantalla('p-revisar');
   if ($('conf')) $('conf').onchange = function () { $('aplicar').disabled = !this.checked; };
   if ($('cerrar-sin')) $('cerrar-sin').onclick = function () { S.items = []; guardarConteo(); pantalla('p-conteo'); pintarLista(); aviso('Conteo cerrado sin cambios'); };
   $('aplicar').onclick = function () {
-    var btn = this; btn.disabled = true; btn.textContent = 'Enviando…'; $('e-rev').textContent = '';
+    var btn = this, neto = camb.reduce(function (t, i) { return t + i.q - i.st.disponible; }, 0);
+    var txt = (neto > 0 ? '+' : '') + neto + ' u.';
+    // Segunda confirmacion (regla de stock real: doble confirmacion). En la practica es igual, para entrenar el mismo recorrido.
+    modal('<h3>' + (REAL ? '¿Confirmás los cambios en Contabilium?' : 'Práctica: ¿confirmás la simulación?') + '</h3>'
+      + '<p>Vas a ' + (REAL ? 'cambiar' : 'simular') + ' <b>' + camb.length + (camb.length === 1 ? ' SKU' : ' SKU') + '</b> en el depósito Principal (neto <b>' + txt + '</b>).'
+      + (REAL ? ' Se guarda una foto previa para poder deshacerlo.' : ' No se escribe nada.') + '</p>'
+      + '<div class="btnes"><button class="sec" data-i="x">Volver</button><button' + (REAL ? ' class="peligro"' : '') + ' data-i="0">' + (REAL ? 'Sí, aplicar' : 'Sí, simular') + '</button></div>',
+      function (r) { if (r === 0) enviarAplicar(btn); });
+  };
+  function enviarAplicar(btn) {
+    btn.disabled = true; btn.textContent = 'Enviando…'; $('e-rev').textContent = '';
     var items = ok.map(function (i) { return { codigo: i.c, contado: i.q, nombre: String(i.n).slice(0, 60) }; });
     llamar({ accion: 'aplicar', items: items, confirmo_alertas: al.length > 0 && $('conf').checked }).then(function (r) {
       if (!r.ok) throw new Error(r.error || 'No se pudo aplicar');
-      guardarLS('cr_pendiente_' + S.usuario, { id: r.id, enviados: items.map(function (x) { return x.codigo; }) });
+      guardarLS(PFX + 'pendiente_' + S.usuario, { id: r.id, enviados: items.map(function (x) { return x.codigo; }) });
       seguir(r.id, 0);
     }).catch(function (e) { $('e-rev').textContent = e.message + ' Antes de reintentar, revisá el correo o el registro: puede haberse aplicado.'; btn.disabled = false; btn.textContent = 'Reintentar'; });
-  };
+  }
 }
 
 // ---------- resultado ----------
@@ -550,7 +571,7 @@ function mostrarResultado(r) {
   } else if (r.estado === 'SIMULADO') {
     h += '<p>Simulación: no se escribió nada. El conteo sigue abierto.</p>';
   }
-  guardarConteo(); borrarLS('cr_pendiente_' + S.usuario);
+  guardarConteo(); borrarLS(PFX + 'pendiente_' + S.usuario);
   h += '<button id="fin" style="width:100%;margin-top:10px">' + (S.items.length ? 'Volver al conteo' : 'Nuevo conteo') + '</button>';
   $('resul').innerHTML = h;
   $('fin').onclick = function () { pantalla('p-conteo'); pintarLista(); pedirStock(S.items.filter(function (i) { return !i.st; }).map(function (i) { return i.c; })); };
@@ -558,11 +579,20 @@ function mostrarResultado(r) {
 
 // ---------- arranque ----------
 (function () {
-  var s = null; try { s = JSON.parse(sessionStorage.getItem('cr_ses') || 'null'); } catch (e) {}
+  document.title = REAL ? 'Conteo de stock · weis' : 'Práctica de conteo · weis';
+  $('h-modo').textContent = REAL ? 'Conteo' : 'Práctica';
+  $('s-hero').textContent = REAL ? 'Depósito Principal' : 'No cambia el stock: es para practicar';
+  $('t-hero').textContent = REAL ? 'Conteo de stock' : 'Práctica de conteo';
+  if (!REAL) $('e-hero').innerHTML = '<span class="etq">PRÁCTICA</span>';
+  $('modo').className = REAL ? 'real' : '';
+  $('modo').textContent = REAL ? 'REAL: los cambios se escriben en Contabilium' : 'PRÁCTICA: no se escribe nada en Contabilium';
+})();
+(function () {
+  var s = null; try { s = JSON.parse(sessionStorage.getItem(PFX + 'ses') || 'null'); } catch (e) {}
   if (!s) return;
   S.usuario = s.u; S.pin = s.p; S.nombre = s.n; S.modo = s.m; S.umbral = s.um || 5; S.max = s.mx || 200;
   entrarConteo();
-  var p = leerLS('cr_pendiente_' + S.usuario); if (p && p.id) seguir(p.id, 0);
+  var p = leerLS(PFX + 'pendiente_' + S.usuario); if (p && p.id) seguir(p.id, 0);
 })();
 </script>
 </body>
