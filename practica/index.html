@@ -98,6 +98,10 @@ td.n,th.n{text-align:right}
 .chk{display:flex;gap:10px;align-items:flex-start;background:var(--malf);border-radius:10px;padding:12px;margin:10px 0;font-size:15px}
 .chk input{width:26px;height:26px;flex:none;margin:0}
 .vacio{text-align:center;color:var(--suave);padding:24px 8px;font-size:14px}
+.lector{display:none;align-items:center;gap:10px;background:#f4f4f4;border:1px dashed #bbb;border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:10px}
+.lector b{font-size:15px}
+body.pc .lector{display:flex}
+body.pc.sin-cam .abrir-cam{display:none!important}
 /* inicio y consulta de precio (03/11) */
 .inicio h2{font-size:15px;color:var(--suave);font-weight:600;margin:6px 0 14px}
 .opcion{display:flex;align-items:center;gap:16px;width:100%;text-align:left;padding:22px 18px;margin-bottom:12px;border-radius:16px;background:#fff;color:#000;box-shadow:0 1px 2px rgba(0,0,0,.08)}
@@ -183,6 +187,7 @@ td.n,th.n{text-align:right}
 <section class="pant" id="p-precio">
   <div id="precio-res"></div>
   <div class="carta">
+    <div class="lector"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5v14M6 5v14M10 5v14M13 5v14M17 5v14M21 5v14"/></svg><span><b>Lector de códigos listo.</b> Escaneá en cualquier momento; Esc limpia.</span></div>
     <div class="btnes"><button class="abrir-cam" id="abrir-cam-p">Escanear con la cámara</button></div>
     <label for="buscar-p">O escribí el SKU, el código o parte del nombre</label>
     <input id="buscar-p" autocapitalize="characters" spellcheck="false" autocomplete="off" enterkeyhint="search">
@@ -195,6 +200,7 @@ td.n,th.n{text-align:right}
 <!-- CONTEO -->
 <section class="pant" id="p-conteo">
   <div class="carta">
+    <div class="lector"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5v14M6 5v14M10 5v14M13 5v14M17 5v14M21 5v14"/></svg><span><b>Lector de códigos listo.</b> Escaneá en cualquier momento; Esc limpia.</span></div>
     <div class="btnes"><button class="abrir-cam" id="abrir-cam">Escanear con la cámara</button></div>
     <label for="manual">O escribí el SKU, el código o parte del nombre</label>
     <div class="fila"><input id="manual" autocapitalize="characters" spellcheck="false" autocomplete="off" enterkeyhint="done"><button id="sumar" class="sec">+1</button></div>
@@ -226,7 +232,7 @@ td.n,th.n{text-align:right}
 <script>
 // Red de seguridad (04/11): si algo falla al cargar, se muestra el error en pantalla con un boton
 // para reiniciar (borra la sesion y el catalogo guardado; NO borra el conteo en curso).
-var VERSION = '2026-11-04 15:45';
+var VERSION = '2026-11-04 16:20';
 function mostrarFalla(msg) {
   try {
     var d = document.getElementById('falla');
@@ -682,6 +688,53 @@ function detenerCamara() {
 }
 document.addEventListener('visibilitychange', function () { if (document.hidden) detenerCamara(); });
 
+// ---------- lector de codigos USB en PC (04/11, pedido de Alfredo) ----------
+// El lector "teclea" el codigo muy rapido y termina con Enter. Se lo reconoce por la velocidad
+// (en promedio 40 ms o menos entre teclas), en cualquier parte de la pagina y aunque el foco este
+// en otro lado: no hace falta hacer clic en ningun campo. En el Inicio, escanear abre la consulta
+// de precio. Esc cierra lo abierto y limpia. La camara no es obligatoria: en una PC sin camara
+// compatible el boton de camara no aparece.
+var ES_PC = !!(window.matchMedia && window.matchMedia('(pointer: fine)').matches);
+document.body.classList.toggle('pc', ES_PC);
+document.body.classList.toggle('sin-cam', !('BarcodeDetector' in window));
+var LEC = { buf: '', t: [] };
+document.addEventListener('focusin', function (e) { var t = e.target; if (t && t.type === 'number') t.dataset.antes = t.value; }, true);
+document.addEventListener('keydown', function (e) {
+  if (!S.usuario || S.vista === 'p-login' || e.ctrlKey || e.altKey || e.metaKey) return;
+  var ahora = performance.now();
+  if (e.key === 'Enter' || e.key === 'Tab') {
+    var n = LEC.buf.length, cod = LEC.buf, rapido = n >= 3 && (LEC.t[n - 1] - LEC.t[0]) / (n - 1) <= 40 && ahora - LEC.t[n - 1] < 300;
+    LEC.buf = ''; LEC.t = [];
+    if (!rapido) return;                        // tipeo de una persona: lo maneja el campo
+    e.preventDefault(); e.stopPropagation();
+    var tg = e.target;                          // lo que el lector escribio en un campo se deshace
+    if (tg && tg.tagName === 'INPUT') { if (tg.type === 'number') { if (tg.dataset.antes != null) tg.value = tg.dataset.antes; } else { tg.value = ''; ['sug', 'sug-p', 'm-sug'].forEach(function (id) { if ($(id)) $(id).innerHTML = ''; }); } }
+    escaneoLector(cod.trim());
+    return;
+  }
+  if (e.key === 'Escape') { escapeApp(); return; }
+  if (e.key && e.key.length === 1) {
+    if (LEC.t.length && ahora - LEC.t[LEC.t.length - 1] > 80) { LEC.buf = ''; LEC.t = []; }
+    LEC.buf += e.key; LEC.t.push(ahora);
+  }
+}, true);
+function escaneoLector(cod) {
+  if (!cod) return;
+  if ($('cliente').classList.contains('on')) $('cliente').classList.remove('on');
+  if ($('modal').classList.contains('on')) cerrarModal();
+  if (S.vista === 'p-inicio') pantalla('p-precio');
+  if (S.vista === 'p-revisar' || S.vista === 'p-resultado') { sonido(false); aviso('Volvé al conteo para seguir escaneando.', 'av'); return; }
+  leido(cod, 'lector');
+  if (ES_PC) setTimeout(function () { var f = $(S.vista === 'p-precio' ? 'buscar-p' : 'manual'); if (f && document.activeElement !== f && !(document.activeElement && document.activeElement.type === 'number')) f.focus(); }, 50);
+}
+function escapeApp() {
+  if ($('cliente').classList.contains('on')) { $('cliente').classList.remove('on'); return; }
+  if ($('modal').classList.contains('on')) { cerrarModal(); return; }
+  if (cam.stream) { detenerCamara(); return; }
+  if (S.vista === 'p-precio') { PR = { p: null, vars: [], stock: {}, err: '', pedido: PR.pedido + 1 }; pintarPrecio(); pintarRecientes(); limpiarBuscarP(); $('buscar-p').focus(); return; }
+  if (S.vista === 'p-conteo') { limpiarManual(); $('manual').focus(); }
+}
+
 // ---------- boton atras (04/11, pedido de Alfredo) ----------
 // Dentro de la app el boton atras del celular navega entre pantallas y nunca saca de la pagina:
 // cierra lo que este abierto (cliente, ventana, camara) o vuelve al inicio. Desde el inicio no sale:
@@ -750,7 +803,7 @@ function variantesDe(p) {
 var PR = { p: null, vars: [], stock: {}, err: '', pedido: 0 };
 function verPrecio(p, origen) {
   if (!p) return;
-  if (origen === 'cam') { sonido(true); detenerCamara(); }
+  if (origen === 'cam' || origen === 'lector') { sonido(true); detenerCamara(); }
   PR = { p: p, vars: p.t === 'P' ? variantesDe(p) : [p], stock: {}, err: '', pedido: PR.pedido + 1 };
   agregarReciente(p); pintarPrecio(); window.scrollTo(0, 0);
   if (p.t !== 'P') return;
@@ -836,7 +889,7 @@ $('buscar-p').addEventListener('input', function () {
 });
 $('sug-p').addEventListener('click', function (e) { var d = e.target.closest('[data-s]'); if (!d) return; verPrecio(sugsP[Number(d.getAttribute('data-s'))], 'man'); limpiarBuscarP(); });
 $('buscar-p').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); var t = this.value.trim(); if (t) { leido(t, 'man'); limpiarBuscarP(); } } });
-function limpiarBuscarP() { $('buscar-p').value = ''; $('sug-p').innerHTML = ''; sugsP = []; $('buscar-p').blur(); }
+function limpiarBuscarP() { $('buscar-p').value = ''; $('sug-p').innerHTML = ''; sugsP = []; if (!ES_PC) $('buscar-p').blur(); }
 
 // ---------- pie ----------
 function cuentas() {
