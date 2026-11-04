@@ -114,6 +114,10 @@ td.n,th.n{text-align:right}
 .talle small{display:block;font-weight:400;font-size:11px;color:var(--suave)}
 .talle.sel{background:#000;color:#fff;border-color:#000}.talle.sel small{color:#bbb}
 .talle.sin{color:#b5b5b5;border-style:dashed}
+.talle.res{border-color:#e9b949;box-shadow:inset 0 0 0 1px #e9b949}
+.talle .r{display:block;font-size:10px;font-weight:800;color:var(--av);margin-top:1px}
+.talle.sel .r{color:#facc15}
+.res-nota{display:block;color:var(--av);font-size:12px;font-weight:700;margin-top:3px}
 .reciente{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--linea);font-size:14px;cursor:pointer}
 #cliente{position:fixed;inset:0;z-index:70;background:#000;color:#fff;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px}
 #cliente.on{display:flex}
@@ -638,22 +642,34 @@ function pintarPrecio() {
     });
     h += '<p class="nota" style="margin:2px 0 0">ML: foto de publicaciones ' + esc(fechaCorta(p.ml.f)) + '. Solo de referencia: el local cobra el precio de arriba.</p>';
   } else h += '<div class="linea">' + et('ml', 'MercadoLibre') + '<b>sin publicación activa</b></div>';
-  var st = p.t !== 'P' ? 'combo: sin stock propio' : (PR.err ? esc(PR.err) : (!s ? 'Consultando…' : (s.ok ? s.disponible + (s.disponible === 1 ? ' disponible' : ' disponibles') + (s.reservado ? ' <span class="nota">(+' + s.reservado + ' reserv.)</span>' : '') : esc(s.error))));
+  var st = p.t !== 'P' ? 'combo: sin stock propio' : (PR.err ? esc(PR.err) : (!s ? 'Consultando…' : (s.ok ? s.disponible + (s.disponible === 1 ? ' disponible' : ' disponibles')
+      // Reservas (04/11, pedido de Alfredo): se aclaran siempre. Son ventas de ML sin despachar: no se ofrecen en el local.
+      + (s.reservado ? '<span class="res-nota">+' + s.reservado + (s.reservado === 1 ? ' reservada' : ' reservadas') + ' · venta ML sin despachar</span>' : '') : esc(s.error))));
   h += '<div class="linea">' + et('st', 'Stock Principal') + '<b>' + st + '</b></div>';
+  if (s && s.ok && s.reservado) h += '<div class="aviso-p">' + (s.disponible > 0 ? 'Ojo: de las ' + s.actual + ' unidades del depósito, ' + s.reservado + (s.reservado === 1 ? ' está reservada' : ' están reservadas') + ' para ventas de ML sin despachar. Para el local quedan ' + s.disponible + '.' : 'No hay unidades para vender en el local: las ' + s.actual + ' del depósito están reservadas para ventas de ML sin despachar.') + '</div>';
+  var hayRes = false;
   if (PR.vars.length > 1) {
     h += '<div class="linea" style="border-bottom:0;padding-bottom:2px"><span>Variantes del modelo</span><b>' + PR.vars.length + '</b></div><div class="talles">'
-      + PR.vars.map(function (v, i) { var sv = PR.stock[v.c.toLowerCase()], d = sv && sv.ok ? sv.disponible : null;
-        return '<button class="talle' + (v === p ? ' sel' : '') + (d !== null && d <= 0 ? ' sin' : '') + '" data-v="' + i + '">' + esc(etiqueta(v, p)) + '<small>' + (d === null ? '…' : d) + '</small></button>'; }).join('')
-      + '</div><p class="nota" style="margin:4px 0 0">Tocá una variante para ver su precio. El número chico es el stock disponible.</p>';
+      + PR.vars.map(function (v, i) { var sv = PR.stock[v.c.toLowerCase()], d = sv && sv.ok ? sv.disponible : null, rv = sv && sv.ok ? sv.reservado : 0;
+        if (rv) hayRes = true;
+        return '<button class="talle' + (v === p ? ' sel' : '') + (d !== null && d <= 0 ? ' sin' : '') + (rv ? ' res' : '') + '" data-v="' + i + '">' + esc(etiqueta(v, p)) + '<small>' + (d === null ? '…' : d) + '</small>' + (rv ? '<span class="r">+' + rv + ' R</span>' : '') + '</button>'; }).join('')
+      + '</div><p class="nota" style="margin:4px 0 0">Tocá una variante para ver su precio. El número chico es el stock disponible.' + (hayRes ? ' <b style="color:var(--av)">+N R = unidades reservadas para ventas de ML sin despachar (no están en el disponible).</b>' : '') + '</p>';
   }
   h += '<button id="mostrar" style="width:100%;margin-top:14px;padding:15px;font-size:17px"' + (r.cobrar ? '' : ' disabled') + '>Mostrar al cliente</button></div>';
   $('precio-res').innerHTML = h;
-  $('mostrar').onclick = mostrarCliente;
+  $('mostrar').onclick = function () { mostrarCliente(false); };
 }
 $('precio-res').addEventListener('click', function (e) { var b = e.target.closest('[data-v]'); if (b) verPrecio(PR.vars[Number(b.getAttribute('data-v'))], 'man'); });
 function titulo(n) { return String(n || '').toLowerCase().replace(/(^|\s)(\S)/g, function (m, a, b) { return a + b.toUpperCase(); }); }
-function mostrarCliente() {
+function mostrarCliente(forzar) {
   var p = PR.p, r = precioDe(p); if (!r.cobrar) return;
+  // Sin stock para el local (04/11, opcion b de Alfredo): se puede mostrar igual, pero hay que confirmarlo.
+  var s = PR.stock[p.c.toLowerCase()];
+  if (forzar !== true && p.t === 'P' && s && s.ok && s.disponible <= 0) {
+    modal('<h3>No hay stock para vender en el local</h3><p>' + (s.reservado ? 'Las ' + s.actual + ' unidades del depósito están reservadas para ventas de ML sin despachar.' : 'El depósito Principal no tiene unidades de este producto.') + ' ¿Mostrar el precio al cliente igual?</p>'
+      + '<div class="btnes"><button class="sec" data-i="x">Volver</button><button data-i="0">Mostrar igual</button></div>', function (i) { if (i === 0) mostrarCliente(true); });
+    return;
+  }
   var h = '<svg viewBox="3 3 402 97" role="img" aria-label="weis"><use href="#weis"/></svg><div class="n">' + esc(titulo(p.n)) + '</div>';
   if (r.promo) h += '<div class="tc">' + plata(r.lista) + '</div><div class="pr">−' + r.pct + '% OFF</div>';
   h += '<div class="p">' + plata(r.cobrar) + '</div><div class="vig">Precio de contado</div><button id="cerrar-cliente">Volver</button>';
